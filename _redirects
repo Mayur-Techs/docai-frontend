@@ -1,0 +1,3 @@
+# Netlify redirects
+# Routes all unknown paths to 404 page
+/*    /404.html   404

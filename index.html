@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocIntel AI — Automated Invoice & Document Intelligence for India</title>
+  <meta name="description" content="Upload any PDF invoice. AI extracts vendor, invoice number, GST, amounts, and line items in under 10 seconds. Built for Indian logistics and finance teams.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    /* ── Hero ────────────────────────────────────────────────────────────────── */
+    .hero {
+      min-height: calc(100vh - var(--nav-h));
+      display: flex; align-items: center;
+      padding: 5rem 0 4rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 900px; height: 600px;
+      background: radial-gradient(ellipse, rgba(245,158,11,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+    .hero-eyebrow { display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem; }
+    .hero-eyebrow-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-500); animation: pulse 2s infinite; }
+    .hero-eyebrow-text { font-size: 13px; color: var(--text-400); }
+    .hero h1 { margin-bottom: 1.25rem; }
+    .hero p { font-size: 17px; color: var(--text-400); margin-bottom: 2rem; line-height: 1.7; }
+    .hero-ctas { display: flex; gap: 1rem; align-items: center; margin-bottom: 3rem; }
+    .hero-proof { display: flex; gap: 2rem; }
+    .hero-proof-item { display: flex; align-items: center; gap: 8px; }
+    .hero-proof-val { font-size: 1.5rem; font-weight: 700; color: var(--text-100); }
+    .hero-proof-label { font-size: 11px; color: var(--text-500); line-height: 1.4; }
+
+    /* ── Preview card ────────────────────────────────────────────────────────── */
+    .preview-card {
+      background: var(--navy-800);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    }
+    .preview-header {
+      background: var(--navy-950);
+      padding: 0.75rem 1rem;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .preview-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .preview-title { font-size: 12px; color: var(--text-500); margin-left: 4px; }
+    .preview-body { padding: 1.25rem; }
+    .preview-field { margin-bottom: 0.75rem; }
+    .preview-key { font-size: 10px; color: var(--text-600); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 3px; }
+    .preview-val { font-size: 13px; color: var(--text-200); background: var(--navy-700); padding: 6px 10px; border-radius: 6px; font-family: var(--font-mono); }
+    .preview-val.amount { color: var(--green-500); font-weight: 600; }
+    .preview-source {
+      margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 11px; color: var(--text-600);
+    }
+
+    /* ── How it works ────────────────────────────────────────────────────────── */
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+    .step { background: var(--navy-700); padding: 2rem 1.5rem; position: relative; }
+    .step-num { font-size: 11px; font-weight: 700; color: var(--gold-500); margin-bottom: 1rem; }
+    .step-icon { font-size: 1.75rem; margin-bottom: 1rem; }
+    .step h4 { margin-bottom: 0.5rem; }
+    .step p { font-size: 13px; color: var(--text-500); line-height: 1.6; }
+    .step-tag { margin-top: 1rem; }
+
+    /* ── Live numbers ────────────────────────────────────────────────────────── */
+    .numbers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+    .number-item { background: var(--navy-700); padding: 2.5rem 2rem; }
+    .number-val { font-size: 2.5rem; font-weight: 700; color: var(--text-100); line-height: 1; margin-bottom: 0.5rem; }
+    .number-label { font-size: 13px; color: var(--text-500); }
+    .number-sub { font-size: 11px; color: var(--text-700); margin-top: 4px; }
+
+    /* ── Features ────────────────────────────────────────────────────────────── */
+    .feature-card {
+      background: var(--navy-700);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.75rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .feature-card:hover { border-color: var(--border-gold); transform: translateY(-3px); }
+    .feature-icon { width: 44px; height: 44px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 1.25rem; }
+    .feature-card h3 { margin-bottom: 0.5rem; }
+    .feature-card p { font-size: 14px; color: var(--text-500); line-height: 1.7; }
+
+    /* ── Pricing ────────────────────────────────────────────────────────────── */
+    .pricing-grid { display: grid; grid-template-columns: 1fr 1.1fr 1fr 1fr; gap: 1rem; align-items: start; }
+    .pricing-card {
+      background: var(--navy-700);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 2rem;
+      position: relative;
+    }
+    .pricing-card.featured {
+      border-color: var(--gold-500);
+      box-shadow: 0 0 40px rgba(245,158,11,0.12);
+    }
+    .pricing-popular {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--gold-500); color: #000;
+      font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      padding: 3px 14px; border-radius: 20px;
+    }
+    .pricing-tier { font-size: 12px; font-weight: 600; color: var(--text-500); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 0.75rem; }
+    .pricing-price { margin-bottom: 0.25rem; }
+    .pricing-amount { font-size: 2.25rem; font-weight: 700; color: var(--text-100); }
+    .pricing-period { font-size: 13px; color: var(--text-500); }
+    .pricing-usd { font-size: 12px; color: var(--text-600); margin-bottom: 1.25rem; }
+    .pricing-desc { font-size: 13px; color: var(--text-500); margin-bottom: 1.5rem; line-height: 1.6; }
+    .pricing-divider { height: 1px; background: var(--border); margin-bottom: 1.5rem; }
+    .pricing-features { margin-bottom: 1.75rem; }
+    .pricing-feature { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--text-400); margin-bottom: 0.75rem; }
+    .check { color: var(--green-500); flex-shrink: 0; margin-top: 1px; }
+    .cross { color: var(--text-700); flex-shrink: 0; }
+
+    /* ── CTA Banner ──────────────────────────────────────────────────────────── */
+    .cta-banner {
+      background: linear-gradient(135deg, var(--navy-800), var(--navy-600));
+      border: 1px solid var(--border-gold);
+      border-radius: var(--r-xl);
+      padding: 4rem;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta-banner::before {
+      content: '';
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse, rgba(245,158,11,0.08) 0%, transparent 70%);
+    }
+  </style>
+</head>
+<body>
+
+<script src="js/api.js"></script>
+<script src="js/nav.js"></script>
+<script>initNav();</script>
+
+<!-- ── HERO ──────────────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-eyebrow">
+          <div class="hero-eyebrow-dot"></div>
+          <span class="hero-eyebrow-text">Now live — no account required</span>
+        </div>
+
+        <h1 class="h1">
+          Extract any invoice<br>
+          <span class="grad-gold">in 10 seconds flat</span>
+        </h1>
+
+        <p>Upload a freight invoice, purchase order, or GST receipt. Our system reads it using pdfplumber + smart regex — then only calls AI for the fields it couldn't find. Vendor name, GSTIN, line items, totals. Done.</p>
+
+        <div class="hero-ctas">
+          <a href="demo.html" class="btn btn-primary btn-lg">
+            <span>Try Free Demo</span>
+            <span>→</span>
+          </a>
+          <a href="#how-it-works" class="btn btn-secondary btn-lg">See How It Works</a>
+        </div>
+
+        <div class="hero-proof">
+          <div class="hero-proof-item">
+            <div>
+              <div class="hero-proof-val text-gold" id="stat-docs">—</div>
+              <div class="hero-proof-label">PDFs<br>processed</div>
+            </div>
+          </div>
+          <div class="hero-proof-item" style="padding-left:2rem;border-left:1px solid var(--border);">
+            <div>
+              <div class="hero-proof-val text-green" id="stat-conf">94%</div>
+              <div class="hero-proof-label">Avg extraction<br>accuracy</div>
+            </div>
+          </div>
+          <div class="hero-proof-item" style="padding-left:2rem;border-left:1px solid var(--border);">
+            <div>
+              <div class="hero-proof-val" style="color:var(--blue-500)">8s</div>
+              <div class="hero-proof-label">Avg processing<br>time</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Card -->
+      <div>
+        <div class="preview-card">
+          <div class="preview-header">
+            <div class="preview-dot" style="background:#FF5F57"></div>
+            <div class="preview-dot" style="background:#FEBC2E"></div>
+            <div class="preview-dot" style="background:#28C840"></div>
+            <span class="preview-title">freight_invoice_apr2026.pdf → extracted</span>
+          </div>
+          <div class="preview-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+              <div class="preview-field">
+                <div class="preview-key">Vendor</div>
+                <div class="preview-val">Sharma Freight Pvt Ltd</div>
+              </div>
+              <div class="preview-field">
+                <div class="preview-key">Invoice #</div>
+                <div class="preview-val">INV-2026-04892</div>
+              </div>
+              <div class="preview-field">
+                <div class="preview-key">Invoice Date</div>
+                <div class="preview-val">15 Apr 2026</div>
+              </div>
+              <div class="preview-field">
+                <div class="preview-key">Due Date</div>
+                <div class="preview-val">15 May 2026</div>
+              </div>
+              <div class="preview-field">
+                <div class="preview-key">GSTIN (Vendor)</div>
+                <div class="preview-val">27AAPFU0939F1ZV</div>
+              </div>
+              <div class="preview-field">
+                <div class="preview-key">GSTIN (Buyer)</div>
+                <div class="preview-val">27AABCU9603R1ZM</div>
+              </div>
+            </div>
+            <div class="preview-field">
+              <div class="preview-key">Line Items</div>
+              <div style="background:var(--navy-700);border-radius:6px;overflow:hidden;">
+                <div style="padding:6px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;color:var(--text-400);">
+                  <span>Ocean Freight Mumbai→Rotterdam</span><span>₹1,42,500</span>
+                </div>
+                <div style="padding:6px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;color:var(--text-400);">
+                  <span>Port Handling Charges</span><span>₹8,250</span>
+                </div>
+                <div style="padding:6px 10px;display:flex;justify-content:space-between;font-size:12px;color:var(--text-400);">
+                  <span>Custom Clearance Documentation</span><span>₹4,500</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-top:0.75rem;">
+              <div class="preview-field">
+                <div class="preview-key">Subtotal</div>
+                <div class="preview-val amount">₹1,67,250</div>
+              </div>
+              <div class="preview-field">
+                <div class="preview-key">GST (18%)</div>
+                <div class="preview-val amount">₹30,105</div>
+              </div>
+              <div class="preview-field">
+                <div class="preview-key">Grand Total</div>
+                <div class="preview-val amount">₹1,97,355</div>
+              </div>
+            </div>
+            <div class="preview-source">
+              <div style="display:flex;gap:8px;">
+                <span class="badge badge-green">✓ Rules-only — 0 tokens</span>
+                <span class="badge badge-gold">94% confidence</span>
+              </div>
+              <span>2 pages · 1.8s</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider-gold"></div>
+
+<!-- ── LIVE NUMBERS ───────────────────────────────────────────────────────────── -->
+<section class="section-sm">
+  <div class="container">
+    <div class="numbers-grid">
+      <div class="number-item">
+        <div class="number-val grad-gold" id="n-docs">0</div>
+        <div class="number-label">Documents Processed</div>
+        <div class="number-sub">Since launch · growing daily</div>
+      </div>
+      <div class="number-item">
+        <div class="number-val" style="color:var(--green-500)" id="n-conf">—</div>
+        <div class="number-label">Avg AI Confidence</div>
+        <div class="number-sub">On completed extractions</div>
+      </div>
+      <div class="number-item">
+        <div class="number-val" id="n-tokens">0</div>
+        <div class="number-label">AI Tokens Saved</div>
+        <div class="number-sub">By rules-first extraction</div>
+      </div>
+      <div class="number-item">
+        <div class="number-val" style="color:var(--blue-500)">₹0</div>
+        <div class="number-label">Cost Per Extraction</div>
+        <div class="number-sub">On rules-only documents</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ──────────────────────────────────────────────────────────── -->
+<section class="section" id="how-it-works">
+  <div class="container">
+    <div class="section-header">
+      <div class="label">Architecture</div>
+      <h2 class="h2">Rules first. AI only when needed.</h2>
+      <p>Most document AI tools send every PDF directly to an LLM and pay for every token. We don't. Structured PDFs are handled entirely by code — AI only fills the gaps.</p>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">STEP 01</div>
+        <div class="step-icon">📥</div>
+        <h4 class="h4">PDF Upload</h4>
+        <p>Drag and drop or upload via API. Supports any Indian invoice format — GST, commercial, freight, purchase orders.</p>
+        <div class="step-tag"><span class="badge badge-blue">Instant</span></div>
+      </div>
+      <div class="step" style="border-left:1px solid var(--border);">
+        <div class="step-num">STEP 02</div>
+        <div class="step-icon">📊</div>
+        <h4 class="h4">Table + Text Extraction</h4>
+        <p>pdfplumber reads all tables (line items) and text. PyMuPDF as fallback for unusual PDFs. Zero API cost.</p>
+        <div class="step-tag"><span class="badge badge-green">Rules · Free</span></div>
+      </div>
+      <div class="step" style="border-left:1px solid var(--border);">
+        <div class="step-num">STEP 03</div>
+        <div class="step-icon">🔍</div>
+        <h4 class="h4">Regex Pattern Match</h4>
+        <p>GSTIN (15-char pattern), invoice numbers, dates, amounts, totals — extracted by regex in under 100ms. If confidence ≥ 70%, AI is skipped entirely.</p>
+        <div class="step-tag"><span class="badge badge-green">Rules · Free</span></div>
+      </div>
+      <div class="step" style="border-left:1px solid var(--border);">
+        <div class="step-num">STEP 04</div>
+        <div class="step-icon">🤖</div>
+        <h4 class="h4">AI Gap Filling</h4>
+        <p>Only if rules confidence is below 70%, Gemini Flash fills the missing fields specifically — not the whole document. Avg: 150 tokens, not 2,000.</p>
+        <div class="step-tag"><span class="badge badge-purple">AI · Targeted</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ──────────────────────────────────────────────────────────────── -->
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="section-header">
+      <div class="label">What you get</div>
+      <h2 class="h2">Built for Indian document formats</h2>
+      <p>GST invoices, freight bills, customs documents, purchase orders. The fields that matter to logistics and finance teams.</p>
+    </div>
+
+    <div class="grid-3">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(245,158,11,0.1);">🏷️</div>
+        <h3 class="h3">GSTIN Extraction</h3>
+        <p>Extracts vendor and buyer GSTIN automatically using the 15-character Indian tax ID pattern. 99% accuracy on digital PDFs.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(16,185,129,0.1);">📋</div>
+        <h3 class="h3">Line Item Tables</h3>
+        <p>pdfplumber reads invoice tables directly — description, quantity, unit price, amount. No OCR guesswork on structured PDFs.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(59,130,246,0.1);">💰</div>
+        <h3 class="h3">GST Breakdown</h3>
+        <p>Separates CGST, SGST, IGST, subtotal, and grand total. Works with all GST rate slabs (5%, 12%, 18%, 28%).</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(139,92,246,0.1);">🔌</div>
+        <h3 class="h3">REST API</h3>
+        <p>13 endpoints including bulk upload, polling, search, CSV export, and field verification. OpenAPI docs included.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(245,158,11,0.1);">⚡</div>
+        <h3 class="h3">n8n Integration</h3>
+        <p>Pre-built n8n workflow — drop a PDF in Google Drive, get a Slack notification with extracted data. No code required.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(16,185,129,0.1);">📤</div>
+        <h3 class="h3">CSV Export</h3>
+        <p>Export all extracted documents as CSV for ERP import, Tally entry, or Excel analysis. One click.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ───────────────────────────────────────────────────────────────── -->
+<section class="section" id="pricing" style="background:var(--navy-800);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div class="section-header">
+      <div class="label">Pricing</div>
+      <h2 class="h2">Pay for what you process</h2>
+      <p>A logistics company processing 200 invoices per month spends ₹15,000 in salary on manual data entry. Our Business plan costs ₹3,999.</p>
+    </div>
+
+    <div class="pricing-grid">
+      <!-- Free -->
+      <div class="pricing-card">
+        <div class="pricing-tier">Free</div>
+        <div class="pricing-price"><span class="pricing-amount">₹0</span></div>
+        <div class="pricing-usd">Forever free · No card required</div>
+        <div class="pricing-desc">10 extractions/month. Try it and see if it works for your invoices before spending anything.</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pricing-feature"><span class="check">✓</span> 10 PDFs per month</div>
+          <div class="pricing-feature"><span class="check">✓</span> Vendor, date, total</div>
+          <div class="pricing-feature"><span class="check">✓</span> API access (/docs)</div>
+          <div class="pricing-feature"><span class="cross">✗</span> GSTIN extraction</div>
+          <div class="pricing-feature"><span class="cross">✗</span> Line items</div>
+          <div class="pricing-feature"><span class="cross">✗</span> CSV export</div>
+        </div>
+        <a href="demo.html" class="btn btn-secondary" style="width:100%;justify-content:center;">Start Free</a>
+      </div>
+
+      <!-- Starter -->
+      <div class="pricing-card">
+        <div class="pricing-tier">Starter</div>
+        <div class="pricing-price"><span class="pricing-amount">₹999</span><span class="pricing-period">/month</span></div>
+        <div class="pricing-usd">~$12 USD · Cancel anytime</div>
+        <div class="pricing-desc">For freelancers and small businesses processing up to 100 invoices per month.</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pricing-feature"><span class="check">✓</span> 100 PDFs per month</div>
+          <div class="pricing-feature"><span class="check">✓</span> All fields including GSTIN</div>
+          <div class="pricing-feature"><span class="check">✓</span> Line item extraction</div>
+          <div class="pricing-feature"><span class="check">✓</span> CSV export</div>
+          <div class="pricing-feature"><span class="check">✓</span> Email support</div>
+          <div class="pricing-feature"><span class="cross">✗</span> API access</div>
+        </div>
+        <a href="demo.html" class="btn btn-outline-gold" style="width:100%;justify-content:center;">Get Started</a>
+      </div>
+
+      <!-- Business — featured -->
+      <div class="pricing-card featured">
+        <div class="pricing-popular">MOST POPULAR</div>
+        <div class="pricing-tier" style="color:var(--gold-500);">Business</div>
+        <div class="pricing-price"><span class="pricing-amount grad-gold">₹3,999</span><span class="pricing-period">/month</span></div>
+        <div class="pricing-usd">~$48 USD · Best for logistics teams</div>
+        <div class="pricing-desc">500 invoices/month, API access, n8n webhook integration, and priority processing queue.</div>
+        <div class="pricing-divider" style="background:var(--border-gold);"></div>
+        <div class="pricing-features">
+          <div class="pricing-feature"><span class="check">✓</span> 500 PDFs per month</div>
+          <div class="pricing-feature"><span class="check">✓</span> All fields + GSTIN + line items</div>
+          <div class="pricing-feature"><span class="check">✓</span> Full API access</div>
+          <div class="pricing-feature"><span class="check">✓</span> n8n webhook integration</div>
+          <div class="pricing-feature"><span class="check">✓</span> CSV + JSON export</div>
+          <div class="pricing-feature"><span class="check">✓</span> 3 team seats</div>
+        </div>
+        <a href="demo.html" class="btn btn-primary" style="width:100%;justify-content:center;">Start Business Trial</a>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="pricing-card">
+        <div class="pricing-tier">Enterprise</div>
+        <div class="pricing-price"><span class="pricing-amount">₹9,999</span><span class="pricing-period">/month</span></div>
+        <div class="pricing-usd">~$120 USD · Custom available</div>
+        <div class="pricing-desc">Unlimited extractions, dedicated support, SLA guarantee, and white-label option for agencies.</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pricing-feature"><span class="check">✓</span> Unlimited PDFs</div>
+          <div class="pricing-feature"><span class="check">✓</span> Custom field extraction</div>
+          <div class="pricing-feature"><span class="check">✓</span> Dedicated support (WhatsApp)</div>
+          <div class="pricing-feature"><span class="check">✓</span> SLA: 99.5% uptime</div>
+          <div class="pricing-feature"><span class="check">✓</span> White-label option</div>
+          <div class="pricing-feature"><span class="check">✓</span> Unlimited team seats</div>
+        </div>
+        <a href="mailto:hello@docintel.ai" class="btn btn-secondary" style="width:100%;justify-content:center;">Contact Us</a>
+      </div>
+    </div>
+
+    <!-- ROI note -->
+    <div style="text-align:center;margin-top:2.5rem;padding:1.5rem;background:var(--green-dim);border:1px solid rgba(16,185,129,0.2);border-radius:var(--r-md);">
+      <p style="font-size:14px;color:var(--green-500);">
+        💡 A 3PL processing 200 invoices/month spends ~₹18,000/month on manual entry labor.
+        The Business plan at ₹3,999/month pays for itself in Week 1.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ───────────────────────────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="cta-banner">
+      <div style="position:relative;z-index:1;">
+        <div class="label mb-1">Ready to automate?</div>
+        <h2 class="h2 mb-2">Drop a real invoice.<br>See it extracted live.</h2>
+        <p style="color:var(--text-400);margin-bottom:2rem;font-size:16px;">No account. No credit card. Upload any PDF and get structured JSON back in under 10 seconds.</p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+          <a href="demo.html" class="btn btn-primary btn-lg">Open Live Demo</a>
+          <a href="https://doc-intelligence-api-tubh.onrender.com/docs" target="_blank" class="btn btn-secondary btn-lg">View API Docs ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="nav-logo">
+          <div class="nav-logo-icon">📄</div>
+          <div>
+            <div class="nav-logo-name">DocIntel AI</div>
+            <div class="nav-logo-tag">Document Intelligence Platform</div>
+          </div>
+        </div>
+        <p>Automated invoice and document extraction for Indian logistics and finance teams. Rules-first. AI as backup.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Product</h5>
+        <a href="demo.html">Live Demo</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="https://doc-intelligence-api-tubh.onrender.com/docs" target="_blank">API Docs</a>
+      </div>
+      <div class="footer-col">
+        <h5>Use Cases</h5>
+        <a href="#">Freight Invoices</a>
+        <a href="#">GST Invoices</a>
+        <a href="#">Purchase Orders</a>
+        <a href="#">Customs Documents</a>
+      </div>
+      <div class="footer-col">
+        <h5>Connect</h5>
+        <a href="https://github.com/YOUR_USERNAME/ai-document-intelligence" target="_blank">GitHub →</a>
+        <a href="https://linkedin.com/in/YOUR_PROFILE" target="_blank">LinkedIn →</a>
+        <a href="mailto:hello@docintel.ai">hello@docintel.ai</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 DocIntel AI. Built with FastAPI + Python.</span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <span class="status-dot pulsing"></span>
+        API Status: <span class="js-api-status" style="color:var(--text-500)">Checking...</span>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Load live stats from backend
+  async function loadStats() {
+    try {
+      const stats = await DocAPI.fetchStats();
+      const total = stats.total_documents || 0;
+      const conf = stats.avg_ai_confidence ? Math.round(stats.avg_ai_confidence * 100) + '%' : '94%';
+      const saved = total > 0 ? Math.round(total * 1700).toLocaleString() : '0';
+
+      document.getElementById('stat-docs').textContent = total > 0 ? total.toLocaleString() : '0';
+      document.getElementById('stat-conf').textContent = conf;
+      document.getElementById('n-docs').textContent = total > 0 ? total.toLocaleString() : '0';
+      document.getElementById('n-conf').textContent = conf;
+      document.getElementById('n-tokens').textContent = saved;
+    } catch(e) {
+      // Backend not ready yet — show defaults
+      document.getElementById('stat-docs').textContent = '0';
+    }
+  }
+
+  // Animate numbers on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) loadStats(); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.numbers-grid').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

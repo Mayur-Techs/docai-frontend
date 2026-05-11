@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing — DocIntel AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .pricing-hero { padding: 5rem 0 3rem; text-align: center; }
+    .toggle-row { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 2rem; }
+    .toggle-label { font-size: 14px; color: var(--text-400); }
+    .toggle { position: relative; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; inset: 0; background: var(--navy-500); border-radius: 24px; cursor: pointer; transition: 0.2s; }
+    .slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 0.2s; }
+    input:checked + .slider { background: var(--gold-500); }
+    input:checked + .slider::before { transform: translateX(20px); }
+    .save-badge { background: var(--green-dim); color: var(--green-500); border: 1px solid rgba(16,185,129,0.2); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+
+    .pricing-cards { display: grid; grid-template-columns: 1fr 1.08fr 1fr 1fr; gap: 1rem; align-items: start; }
+    .pc { background: var(--navy-700); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 2rem; position: relative; }
+    .pc.hot { border-color: var(--gold-500); box-shadow: 0 0 48px rgba(245,158,11,0.1); }
+    .pc-badge { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: var(--gold-500); color: #000; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 14px; border-radius: 20px; white-space: nowrap; }
+    .pc-tier { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-500); margin-bottom: 1rem; }
+    .pc-price { margin-bottom: 0.25rem; }
+    .pc-amt { font-size: 2.25rem; font-weight: 700; color: var(--text-100); }
+    .pc-period { font-size: 13px; color: var(--text-500); }
+    .pc-usd { font-size: 12px; color: var(--text-700); margin-bottom: 1rem; }
+    .pc-desc { font-size: 13px; color: var(--text-500); line-height: 1.65; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .pc-feat { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--text-400); margin-bottom: 0.65rem; line-height: 1.5; }
+    .pc-feat .y { color: var(--green-500); flex-shrink: 0; }
+    .pc-feat .n { color: var(--text-800); flex-shrink: 0; }
+    .pc-btn { display: block; text-align: center; padding: 11px; border-radius: var(--r-sm); font-size: 14px; font-weight: 500; margin-top: 1.75rem; transition: all 0.15s; }
+    .pc-btn-primary { background: var(--gold-500); color: #000; border: 1px solid var(--gold-500); }
+    .pc-btn-primary:hover { background: var(--gold-400); box-shadow: 0 0 24px rgba(245,158,11,0.25); }
+    .pc-btn-outline { background: rgba(255,255,255,0.04); color: var(--text-300); border: 1px solid var(--border); }
+    .pc-btn-outline:hover { background: rgba(255,255,255,0.07); }
+    .pc-btn-gold { background: var(--gold-glow); color: var(--gold-500); border: 1px solid var(--border-gold); }
+    .pc-btn-gold:hover { background: rgba(245,158,11,0.2); }
+
+    .compare-table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
+    .compare-table th { padding: 1rem; text-align: center; font-size: 12px; font-weight: 600; color: var(--text-300); border-bottom: 1px solid var(--border); }
+    .compare-table th:first-child { text-align: left; width: 35%; }
+    .compare-table td { padding: 0.85rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; color: var(--text-400); text-align: center; vertical-align: middle; }
+    .compare-table td:first-child { text-align: left; color: var(--text-300); }
+    .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .compare-table tr.section-row td { background: var(--navy-800); color: var(--text-600); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 0.6rem 1rem; }
+    .y { color: var(--green-500); }
+    .n { color: var(--text-700); }
+    .val { color: var(--text-300); font-weight: 500; }
+    .val-gold { color: var(--gold-500); font-weight: 600; }
+
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-q { padding: 1.25rem 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 15px; color: var(--text-200); font-weight: 500; user-select: none; }
+    .faq-q:hover { color: var(--text-100); }
+    .faq-icon { font-size: 18px; color: var(--text-500); transition: transform 0.2s; flex-shrink: 0; }
+    .faq-a { padding-bottom: 1.25rem; font-size: 14px; color: var(--text-500); line-height: 1.7; display: none; }
+    .faq-item.open .faq-a { display: block; }
+    .faq-item.open .faq-icon { transform: rotate(45deg); color: var(--gold-500); }
+
+    .roi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .roi-card { background: var(--navy-700); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 2rem; }
+    .roi-card h4 { margin-bottom: 1rem; }
+    .roi-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .roi-row:last-child { border: none; }
+    .roi-label { color: var(--text-500); }
+    .roi-val { font-weight: 500; }
+    .roi-val.cost { color: var(--red-500); }
+    .roi-val.save { color: var(--green-500); }
+    .roi-val.plan { color: var(--gold-500); }
+    .roi-total { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .roi-total-label { font-size: 12px; color: var(--text-500); }
+    .roi-total-val { font-size: 1.5rem; font-weight: 700; color: var(--green-500); }
+  </style>
+</head>
+<body>
+
+<script src="js/api.js"></script>
+<script src="js/nav.js"></script>
+<script>initNav();</script>
+
+<!-- Hero -->
+<div class="pricing-hero">
+  <div class="container">
+    <div class="label mb-1">Pricing</div>
+    <h1 class="h1">Simple, honest pricing</h1>
+    <p style="color:var(--text-400);margin-top:1rem;font-size:16px;max-width:520px;margin-left:auto;margin-right:auto;">A logistics company spending ₹18,000/month on manual invoice entry pays ₹3,999 for the Business plan. Payback in Week 1.</p>
+    <div class="toggle-row">
+      <span class="toggle-label">Monthly</span>
+      <label class="toggle"><input type="checkbox" id="annualToggle" onchange="toggleAnnual(this.checked)"><span class="slider"></span></label>
+      <span class="toggle-label">Annual</span>
+      <span class="save-badge">Save 20%</span>
+    </div>
+  </div>
+</div>
+
+<!-- Pricing cards -->
+<section class="section-sm">
+  <div class="container">
+    <div class="pricing-cards">
+
+      <div class="pc">
+        <div class="pc-tier">Free</div>
+        <div class="pc-price"><span class="pc-amt">₹0</span></div>
+        <div class="pc-usd">Forever · No card</div>
+        <div class="pc-desc">Try it with 10 real invoices before committing to anything.</div>
+        <div class="pc-feat"><span class="y">✓</span> 10 PDFs per month</div>
+        <div class="pc-feat"><span class="y">✓</span> Vendor, date, total</div>
+        <div class="pc-feat"><span class="y">✓</span> API access (Swagger UI)</div>
+        <div class="pc-feat"><span class="n">✗</span> GSTIN extraction</div>
+        <div class="pc-feat"><span class="n">✗</span> Line items</div>
+        <div class="pc-feat"><span class="n">✗</span> CSV export</div>
+        <div class="pc-feat"><span class="n">✗</span> n8n integration</div>
+        <a href="demo.html" class="pc-btn pc-btn-outline">Start Free</a>
+      </div>
+
+      <div class="pc">
+        <div class="pc-tier">Starter</div>
+        <div class="pc-price">
+          <span class="pc-amt" data-monthly="999" data-annual="799">₹999</span>
+          <span class="pc-period">/mo</span>
+        </div>
+        <div class="pc-usd" id="usd-starter">~$12 USD/month</div>
+        <div class="pc-desc">Freelancers and small businesses processing up to 100 invoices per month.</div>
+        <div class="pc-feat"><span class="y">✓</span> 100 PDFs per month</div>
+        <div class="pc-feat"><span class="y">✓</span> All fields + GSTIN</div>
+        <div class="pc-feat"><span class="y">✓</span> Line item extraction</div>
+        <div class="pc-feat"><span class="y">✓</span> CSV export</div>
+        <div class="pc-feat"><span class="y">✓</span> Email support</div>
+        <div class="pc-feat"><span class="n">✗</span> API programmatic access</div>
+        <div class="pc-feat"><span class="n">✗</span> n8n integration</div>
+        <a href="demo.html" class="pc-btn pc-btn-gold">Get Started</a>
+      </div>
+
+      <div class="pc hot">
+        <div class="pc-badge">MOST POPULAR</div>
+        <div class="pc-tier" style="color:var(--gold-500);">Business</div>
+        <div class="pc-price">
+          <span class="pc-amt grad-gold" data-monthly="3999" data-annual="3199">₹3,999</span>
+          <span class="pc-period">/mo</span>
+        </div>
+        <div class="pc-usd" id="usd-business">~$48 USD/month</div>
+        <div class="pc-desc">For logistics teams, 3PLs, and CHAs processing 100–500 invoices per month.</div>
+        <div class="pc-feat"><span class="y">✓</span> 500 PDFs per month</div>
+        <div class="pc-feat"><span class="y">✓</span> All fields + GSTIN + line items</div>
+        <div class="pc-feat"><span class="y">✓</span> Full REST API access</div>
+        <div class="pc-feat"><span class="y">✓</span> n8n webhook integration</div>
+        <div class="pc-feat"><span class="y">✓</span> CSV + JSON export</div>
+        <div class="pc-feat"><span class="y">✓</span> 3 team seats</div>
+        <div class="pc-feat"><span class="y">✓</span> Priority processing queue</div>
+        <a href="demo.html" class="pc-btn pc-btn-primary">Start 7-Day Trial</a>
+      </div>
+
+      <div class="pc">
+        <div class="pc-tier">Enterprise</div>
+        <div class="pc-price">
+          <span class="pc-amt" data-monthly="9999" data-annual="7999">₹9,999</span>
+          <span class="pc-period">/mo</span>
+        </div>
+        <div class="pc-usd" id="usd-enterprise">~$120 USD/month</div>
+        <div class="pc-desc">Unlimited extractions, SLA guarantee, white-label, and dedicated WhatsApp support.</div>
+        <div class="pc-feat"><span class="y">✓</span> Unlimited PDFs</div>
+        <div class="pc-feat"><span class="y">✓</span> Custom field extraction</div>
+        <div class="pc-feat"><span class="y">✓</span> Dedicated WhatsApp support</div>
+        <div class="pc-feat"><span class="y">✓</span> SLA 99.5% uptime</div>
+        <div class="pc-feat"><span class="y">✓</span> White-label option</div>
+        <div class="pc-feat"><span class="y">✓</span> Unlimited team seats</div>
+        <div class="pc-feat"><span class="y">✓</span> Custom integrations</div>
+        <a href="mailto:hello@docintel.ai" class="pc-btn pc-btn-outline">Contact Sales</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ROI Calculator -->
+<section class="section" style="background:var(--navy-800);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div class="section-header">
+      <div class="label">ROI Calculator</div>
+      <h2 class="h2">Does it pay for itself?</h2>
+      <p>Compare your current manual cost to DocIntel pricing across three typical logistics company profiles.</p>
+    </div>
+    <div class="roi-grid">
+      <div class="roi-card">
+        <h4 class="h4">Small CHA / Broker</h4>
+        <div style="font-size:11px;color:var(--text-600);margin-bottom:1.25rem;">80 invoices/month</div>
+        <div class="roi-row"><span class="roi-label">Data entry labor</span><span class="roi-val cost">₹8,000/mo</span></div>
+        <div class="roi-row"><span class="roi-label">Error corrections</span><span class="roi-val cost">₹3,000/mo</span></div>
+        <div class="roi-row"><span class="roi-label">Total manual cost</span><span class="roi-val cost">₹11,000/mo</span></div>
+        <div class="roi-row"><span class="roi-label">Starter Plan</span><span class="roi-val plan">₹999/mo</span></div>
+        <div class="roi-total">
+          <div><div class="roi-total-label">Monthly savings</div></div>
+          <div class="roi-total-val">₹10,001</div>
+        </div>
+      </div>
+      <div class="roi-card" style="border-color:var(--border-gold);">
+        <h4 class="h4">3PL / Freight Forwarder</h4>
+        <div style="font-size:11px;color:var(--text-600);margin-bottom:1.25rem;">300 invoices/month</div>
+        <div class="roi-row"><span class="roi-label">2 FTE data entry</span><span class="roi-val cost">₹30,000/mo</span></div>
+        <div class="roi-row"><span class="roi-label">Customs hold costs</span><span class="roi-val cost">₹15,000/mo</span></div>
+        <div class="roi-row"><span class="roi-label">Total manual cost</span><span class="roi-val cost">₹45,000/mo</span></div>
+        <div class="roi-row"><span class="roi-label">Business Plan</span><span class="roi-val plan">₹3,999/mo</span></div>
+        <div class="roi-total">
+          <div><div class="roi-total-label">Monthly savings</div></div>
+          <div class="roi-total-val">₹41,001</div>
+        </div>
+      </div>
+      <div class="roi-card">
+        <h4 class="h4">Import Manufacturer</h4>
+        <div style="font-size:11px;color:var(--text-600);margin-bottom:1.25rem;">600+ invoices/month</div>
+        <div class="roi-row"><span class="roi-label">Finance team hours</span><span class="roi-val cost">₹60,000/mo</span></div>
+        <div class="roi-row"><span class="roi-label">12% invoice overcharges</span><span class="roi-val cost">₹25,000/mo</span></div>
+        <div class="roi-row"><span class="roi-label">Total manual cost</span><span class="roi-val cost">₹85,000/mo</span></div>
+        <div class="roi-row"><span class="roi-label">Enterprise Plan</span><span class="roi-val plan">₹9,999/mo</span></div>
+        <div class="roi-total">
+          <div><div class="roi-total-label">Monthly savings</div></div>
+          <div class="roi-total-val">₹75,001</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Full comparison table -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="label">Full Comparison</div>
+      <h2 class="h2">Everything, side by side</h2>
+    </div>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Free</th>
+          <th style="color:var(--gold-500);">Starter</th>
+          <th style="color:var(--gold-500);">Business ⭐</th>
+          <th>Enterprise</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="section-row"><td colspan="5">Extraction Limits</td></tr>
+        <tr><td>PDFs per month</td><td class="val">10</td><td class="val">100</td><td class="val-gold">500</td><td class="val">Unlimited</td></tr>
+        <tr><td>Max file size</td><td class="val">10 MB</td><td class="val">25 MB</td><td class="val-gold">50 MB</td><td class="val">100 MB</td></tr>
+        <tr><td>Batch upload</td><td class="n">✗</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+        <tr><td>Processing priority</td><td class="val">Standard</td><td class="val">Standard</td><td class="val-gold">Priority</td><td class="val-gold">Dedicated</td></tr>
+
+        <tr class="section-row"><td colspan="5">Extracted Fields</td></tr>
+        <tr><td>Vendor name, date, total</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+        <tr><td>GSTIN (vendor + buyer)</td><td class="n">✗</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+        <tr><td>Line items (all rows)</td><td class="n">✗</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+        <tr><td>GST breakdown (CGST/SGST/IGST)</td><td class="n">✗</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+        <tr><td>Bank account + IFSC</td><td class="n">✗</td><td class="n">✗</td><td class="y">✓</td><td class="y">✓</td></tr>
+        <tr><td>Custom fields</td><td class="n">✗</td><td class="n">✗</td><td class="n">✗</td><td class="y">✓</td></tr>
+
+        <tr class="section-row"><td colspan="5">Export & Integration</td></tr>
+        <tr><td>CSV export</td><td class="n">✗</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+        <tr><td>JSON API response</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+        <tr><td>REST API access</td><td class="val">Read only</td><td class="n">✗</td><td class="y">✓</td><td class="y">✓</td></tr>
+        <tr><td>n8n webhook integration</td><td class="n">✗</td><td class="n">✗</td><td class="y">✓</td><td class="y">✓</td></tr>
+        <tr><td>Tally / ERP export format</td><td class="n">✗</td><td class="n">✗</td><td class="y">✓</td><td class="y">✓</td></tr>
+        <tr><td>White-label</td><td class="n">✗</td><td class="n">✗</td><td class="n">✗</td><td class="y">✓</td></tr>
+
+        <tr class="section-row"><td colspan="5">Team & Support</td></tr>
+        <tr><td>Team seats</td><td class="val">1</td><td class="val">1</td><td class="val-gold">3</td><td class="val">Unlimited</td></tr>
+        <tr><td>Email support</td><td class="n">✗</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+        <tr><td>WhatsApp support</td><td class="n">✗</td><td class="n">✗</td><td class="n">✗</td><td class="y">✓</td></tr>
+        <tr><td>SLA uptime guarantee</td><td class="n">✗</td><td class="n">✗</td><td class="n">✗</td><td class="val">99.5%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" style="padding-top:0;">
+  <div class="container" style="max-width:720px;">
+    <div class="section-header">
+      <div class="label">FAQ</div>
+      <h2 class="h2">Common questions</h2>
+    </div>
+    <div id="faqList">
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          What types of PDFs does it work with?
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-a">Any digital PDF — GST invoices, freight bills, purchase orders, customs documents, commercial invoices. Scanned PDFs (image-only) have lower accuracy because there is no text layer to parse. For scanned documents, AI extraction handles it but confidence scores will be lower.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Do you store my invoice data?
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-a">Yes — extracted data is stored in your account so you can search, export, and reprocess it later. The original PDF file is stored for 30 days then deleted. Extracted JSON is kept for the lifetime of your account. You can delete any document at any time via the API or dashboard.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          How accurate is the extraction?
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-a">For clean digital PDFs (the majority of invoices sent by email): 90–96% accuracy. For complex or scanned PDFs: 65–80%. Every extraction includes a confidence score — anything below 70% is flagged so you know to verify it. GSTIN extraction is 99%+ accurate because it has a fixed pattern.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          What is "rules-first" extraction?
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-a">Most document AI tools send every PDF directly to an LLM (expensive, slow). We parse the PDF with pdfplumber first, then run regex patterns for known fields like GSTIN, invoice numbers, and amounts. If we get 70%+ confidence from code alone, we never call the AI. This makes extraction faster, cheaper, and more reliable for standard Indian invoice formats.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Can I integrate this with Tally or my ERP?
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-a">Business and Enterprise plans include a REST API that returns structured JSON. You can use n8n (included) to push that JSON into Tally, SAP, or any ERP with a webhook or API endpoint. The n8n workflow template is included and takes about 30 minutes to set up with your ERP.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Is there a free trial for paid plans?
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-a">The Business plan includes a 7-day free trial with no credit card required. If you process your first 50 invoices and it doesn't work for your document types, you pay nothing. Just email us and we'll close the account.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section-sm">
+  <div class="container" style="text-align:center;">
+    <div style="background:var(--navy-700);border:1px solid var(--border-gold);border-radius:var(--r-xl);padding:3.5rem;position:relative;overflow:hidden;">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%, rgba(245,158,11,0.06) 0%, transparent 60%);pointer-events:none;"></div>
+      <div style="position:relative;">
+        <h2 class="h2 mb-2">Start with 10 free extractions</h2>
+        <p style="color:var(--text-400);margin-bottom:2rem;">No account, no card. Upload a real invoice and see what gets extracted.</p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+          <a href="demo.html" class="btn btn-primary btn-lg">Open Free Demo</a>
+          <a href="mailto:hello@docintel.ai" class="btn btn-secondary btn-lg">Talk to Us</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="nav-logo"><div class="nav-logo-icon">📄</div><div><div class="nav-logo-name">DocIntel AI</div><div class="nav-logo-tag">Document Intelligence Platform</div></div></div>
+        <p>Automated invoice extraction for Indian logistics and finance teams.</p>
+      </div>
+      <div class="footer-col"><h5>Product</h5><a href="demo.html">Live Demo</a><a href="index.html#how-it-works">How It Works</a><a href="pricing.html">Pricing</a><a href="https://doc-intelligence-api-tubh.onrender.com/docs" target="_blank">API Docs</a></div>
+      <div class="footer-col"><h5>Use Cases</h5><a href="#">Freight Invoices</a><a href="#">GST Invoices</a><a href="#">Purchase Orders</a><a href="#">Customs Docs</a></div>
+      <div class="footer-col"><h5>Connect</h5><a href="https://github.com/YOUR_USERNAME/ai-document-intelligence" target="_blank">GitHub →</a><a href="https://linkedin.com/in/YOUR_PROFILE" target="_blank">LinkedIn →</a><a href="mailto:hello@docintel.ai">Email Us</a></div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 DocIntel AI. Built with FastAPI + Python.</span>
+      <span style="display:flex;align-items:center;gap:8px;"><span class="status-dot pulsing"></span><span class="js-api-status" style="color:var(--text-600)">Checking...</span></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  let isAnnual = false;
+  function toggleAnnual(val) {
+    isAnnual = val;
+    document.querySelectorAll('.pc-amt[data-monthly]').forEach(el => {
+      const price = isAnnual ? parseInt(el.dataset.annual) : parseInt(el.dataset.monthly);
+      el.textContent = '₹' + price.toLocaleString('en-IN');
+    });
+    document.getElementById('usd-starter').textContent = isAnnual ? '~$9.6 USD/month · billed annually' : '~$12 USD/month';
+    document.getElementById('usd-business').textContent = isAnnual ? '~$38 USD/month · billed annually' : '~$48 USD/month';
+    document.getElementById('usd-enterprise').textContent = isAnnual ? '~$96 USD/month · billed annually' : '~$120 USD/month';
+  }
+  function toggleFaq(el) {
+    el.parentElement.classList.toggle('open');
+  }
+</script>
+</body>
+</html>
