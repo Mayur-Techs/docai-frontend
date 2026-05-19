@@ -122,18 +122,6 @@
     .check { color: var(--green-500); flex-shrink: 0; margin-top: 1px; }
     .cross { color: var(--text-700); flex-shrink: 0; }
 
-    <div id="ai-stats" style="display:flex;gap:2rem;align-items:center;padding:1rem;border:1px solid #e0e0e0;border-radius:8px">
-   <div><div style="font-size:11px;color:#888">invoices processed</div>
-       <div style="font-size:24px;font-weight:600" id="stat-total">...</div></div>
-  <div><div style="font-size:11px;color:#888">avg accuracy</div>
-       <div style="font-size:18px;font-weight:600;color:#27ae60" id="stat-conf">...</div></div>
-</div>
-<script>
-  fetch('/stats').then(r=>r.json()).then(d=>{
-    document.getElementById('stat-total').textContent=d.total_documents.toLocaleString();
-    document.getElementById('stat-conf').textContent=d.avg_confidence_pct;
-  });
-</script>
 
     /* ── CTA Banner ──────────────────────────────────────────────────────────── */
     .cta-banner {
@@ -561,7 +549,7 @@
     try {
       const stats = await DocAPI.fetchStats();
       const total = stats.total_documents || 0;
-      const conf = stats.avg_ai_confidence ? Math.round(stats.avg_ai_confidence * 100) + '%' : '94%';
+      const conf = stats.avg_confidence_pct || '94%';
       const saved = total > 0 ? Math.round(total * 1700).toLocaleString() : '0';
 
       document.getElementById('stat-docs').textContent = total > 0 ? total.toLocaleString() : '0';
