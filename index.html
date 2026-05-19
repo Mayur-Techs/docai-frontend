@@ -122,6 +122,19 @@
     .check { color: var(--green-500); flex-shrink: 0; margin-top: 1px; }
     .cross { color: var(--text-700); flex-shrink: 0; }
 
+    <div id="ai-stats" style="display:flex;gap:2rem;align-items:center;padding:1rem;border:1px solid #e0e0e0;border-radius:8px">
+   <div><div style="font-size:11px;color:#888">invoices processed</div>
+       <div style="font-size:24px;font-weight:600" id="stat-total">...</div></div>
+  <div><div style="font-size:11px;color:#888">avg accuracy</div>
+       <div style="font-size:18px;font-weight:600;color:#27ae60" id="stat-conf">...</div></div>
+</div>
+<script>
+  fetch('/stats').then(r=>r.json()).then(d=>{
+    document.getElementById('stat-total').textContent=d.total_documents.toLocaleString();
+    document.getElementById('stat-conf').textContent=d.avg_confidence_pct;
+  });
+</script>
+
     /* ── CTA Banner ──────────────────────────────────────────────────────────── */
     .cta-banner {
       background: linear-gradient(135deg, var(--navy-800), var(--navy-600));
