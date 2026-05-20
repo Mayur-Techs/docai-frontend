@@ -602,6 +602,43 @@
       .then(() => showToast('JSON copied to clipboard', 'success'))
       .catch(() => showToast('Copy failed — use Ctrl+C', 'error'));
   }
+
+  /* ── Export bar ─────────────────────────────────────────────────────────── */
+.export-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+  padding: 0.75rem 1rem;
+  background: var(--navy-800); border-top: 1px solid var(--border);
+}
+.export-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 6px; cursor: pointer; border: 1px solid var(--border);
+  background: var(--navy-700); color: var(--text-400);
+  transition: all 0.15s; white-space: nowrap;
+}
+.export-btn:hover { border-color: rgba(255,255,255,0.15); color: var(--text-200); }
+.export-btn.csv:hover  { border-color: rgba(16,185,129,0.4); color: var(--green-500); }
+.export-btn.excel:hover { border-color: rgba(59,130,246,0.4); color: #60a5fa; }
+.export-btn.email-btn:hover { border-color: rgba(245,158,11,0.4); color: var(--gold-500); }
+.email-inline {
+  display: none; align-items: center; gap: 6px;
+  padding: 4px 0;
+}
+.email-inline.open { display: flex; }
+.email-inline input {
+  padding: 4px 10px; font-size: 11px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--navy-600); color: var(--text-200);
+  width: 200px; outline: none;
+}
+.email-inline input:focus { border-color: var(--gold-500); }
+.email-send {
+  padding: 4px 12px; font-size: 11px; font-weight: 500;
+  background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.35);
+  border-radius: 6px; color: var(--gold-500); cursor: pointer;
+}
 </script>
 
 </body>
