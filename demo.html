@@ -572,17 +572,33 @@
 
       </div>
 
-      <div class="source-bar">
-        <div style="display:flex;gap:8px;">
-          <span class="badge badge-green">✓ pdfplumber</span>
-          <span class="badge badge-green">✓ regex patterns</span>
-          ${d.ai_confidence && d.ai_confidence < 0.7 ? `<span class="badge badge-purple">+ Gemini Flash</span>` : `<span class="badge badge-gold">AI skipped — rules sufficient</span>`}
-        </div>
-        <button onclick="copyJson()" style="font-size:11px;color:var(--text-500);padding:4px 10px;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:none;transition:all 0.15s;" onmouseover="this.style.color='var(--text-300)'" onmouseout="this.style.color='var(--text-500)'">
-          Copy JSON
-        </button>
-      </div>
-    </div>`;
+      <div class="export-bar">
+  <div style="display:flex;gap:6px;flex-wrap:wrap;">
+    <span class="badge badge-green">✓ pdfplumber</span>
+    <span class="badge badge-green">✓ regex patterns</span>
+    ${d.ai_confidence && d.ai_confidence < 0.9 ? `<span class="badge badge-purple">+ AI used</span>` : `<span class="badge badge-gold">High confidence</span>`}
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+    <button class="export-btn" onclick="copyJson()" title="Copy raw JSON">
+      📋 Copy JSON
+    </button>
+    <button class="export-btn csv" onclick="downloadCSV()" title="Download as CSV">
+      📊 CSV
+    </button>
+    <button class="export-btn excel" onclick="downloadExcel()" title="Download Excel file">
+      📗 Excel
+    </button>
+    <button class="export-btn email-btn" onclick="toggleEmailBar()" title="Send by email">
+      ✉️ Email
+    </button>
+  </div>
+</div>
+<div class="email-inline" id="emailBar">
+  <input type="email" id="emailInput" placeholder="recipient@company.com" />
+  <button class="email-send" onclick="sendEmail()">Send</button>
+  <span id="emailStatus" style="font-size:11px;color:var(--text-500);"></span>
+</div>
+</div>`;
 
     // Store for copy button
     window._currentJson = d;
@@ -595,6 +611,65 @@
       .replace(/: "([^"]*)"([,\n])/g, ': <span class="json-str">"$1"</span>$2')
       .replace(/: (\d+\.?\d*)([,\n])/g, ': <span class="json-num">$1</span>$2');
   }
+
+
+  const API_BASE = 'https://doc-intelligence-api-tubh.onrender.com';
+
+function getActiveDocId() {
+  const doc = docs.find(d => d.localId == selectedDocId);
+  if (!doc || !doc.docId) {
+    showToast('Export only works on live extractions — not demo data', 'error');
+    return null;
+  }
+  return doc.docId;
+}
+
+function downloadCSV() {
+  const id = getActiveDocId(); if (!id) return;
+  const a = document.createElement('a');
+  a.href = `${API_BASE}/documents/${id}/export/csv`;
+  a.download = `invoice_${id}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('CSV download started', 'success');
+}
+
+function downloadExcel() {
+  const id = getActiveDocId(); if (!id) return;
+  const a = document.createElement('a');
+  a.href = `${API_BASE}/documents/${id}/export/excel`;
+  a.download = `invoice_${id}.xlsx`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('Excel download started', 'success');
+}
+
+function toggleEmailBar() {
+  const bar = document.getElementById('emailBar');
+  if (bar) bar.classList.toggle('open');
+}
+
+async function sendEmail() {
+  const id = getActiveDocId(); if (!id) return;
+  const to = document.getElementById('emailInput')?.value?.trim();
+  const status = document.getElementById('emailStatus');
+  if (!to || !to.includes('@')) {
+    showToast('Enter a valid email address', 'error'); return;
+  }
+  if (status) status.textContent = 'Sending...';
+  try {
+    const r = await fetch(`${API_BASE}/documents/${id}/export/email?to=${encodeURIComponent(to)}`);
+    const data = await r.json();
+    if (r.ok) {
+      showToast(`Email sent to ${to}`, 'success');
+      if (status) status.textContent = `✓ Sent to ${to}`;
+      document.getElementById('emailBar')?.classList.remove('open');
+    } else {
+      showToast(data.detail || 'Email failed', 'error');
+      if (status) status.textContent = '✗ Failed';
+    }
+  } catch(e) {
+    showToast('Network error', 'error');
+  }
+}
 
   function copyJson() {
     if (!window._currentJson) return;
