@@ -221,7 +221,7 @@
             <div class="upload-icon">📄</div>
             <div class="upload-title">Drop PDF here</div>
             <div class="upload-sub">Invoice, contract, receipt, PO</div>
-            <div class="upload-btn" onclick="document.getElementById('fileInput').click()">Browse Files</div>
+            <div class="upload-btn" onclick="event.stopPropagation();document.getElementById('fileInput').click()">Browse Files</div>
           </div>
           <div style="margin-top:1rem;">
             <div style="font-size:11px;color:var(--text-600);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.6px;">Document Type</div>
@@ -634,20 +634,35 @@ function fieldBox(label, value, extraClass) {
 }
 
 // ── Export functions ─────────────────────────────────────────────────────────
+function downloadFile(url, filename) {
+  showToast('Preparing download...', 'success');
+  fetch(url)
+    .then(function(r) {
+      if (!r.ok) throw new Error('Server returned ' + r.status);
+      return r.blob();
+    })
+    .then(function(blob) {
+      var objectUrl = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function() { URL.revokeObjectURL(objectUrl); }, 5000);
+      showToast(filename + ' downloaded', 'success');
+    })
+    .catch(function(err) {
+      showToast('Download failed — ' + err.message, 'error');
+    });
+}
+
 function downloadCSV(id) {
-  var a = document.createElement('a');
-  a.href = API_BASE + '/documents/' + id + '/export/csv';
-  a.download = 'invoice_' + id + '.csv';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  showToast('CSV download started', 'success');
+  downloadFile(API_BASE + '/documents/' + id + '/export/csv', 'invoice_' + id + '.csv');
 }
 
 function downloadExcel(id) {
-  var a = document.createElement('a');
-  a.href = API_BASE + '/documents/' + id + '/export/excel';
-  a.download = 'invoice_' + id + '.xlsx';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  showToast('Excel download started', 'success');
+  downloadFile(API_BASE + '/documents/' + id + '/export/excel', 'invoice_' + id + '.xlsx');
 }
 
 function toggleEmail() {
