@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — DocIntel AI</title>
+  <meta name="description" content="Log in to your DocIntel AI account to access your document dashboard.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <style>
+    :root {
+      --bg: #070a13;
+      --card-bg: #0f172a;
+      --border: rgba(255, 255, 255, 0.08);
+      --gold-500: #f59e0b;
+      --gold-600: #d97706;
+      --gold-glow: rgba(245, 158, 11, 0.05);
+      --text-100: #f9fafb;
+      --text-200: #f3f4f6;
+      --text-300: #d1d5db;
+      --text-500: #9ca3af;
+      --text-700: #4b5563;
+      --r-lg: 16px;
+      --r-md: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-100);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient background glows */
+    body::before {
+      content: "";
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%);
+      top: -100px;
+      left: -100px;
+      z-index: 0;
+    }
+    body::after {
+      content: "";
+      position: absolute;
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.03) 0%, transparent 70%);
+      bottom: -150px;
+      right: -150px;
+      z-index: 0;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 2.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+      position: relative;
+    }
+
+    .logo-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text-100);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .logo-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--gold-500);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--gold-500);
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-200);
+      margin-top: 0.75rem;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-500);
+      margin-top: 4px;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-500);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+      width: 100%;
+      background: rgba(7, 10, 19, 0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 10px 14px;
+      font-size: 14px;
+      color: var(--text-100);
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--gold-500);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.15);
+      background: rgba(7, 10, 19, 0.9);
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--gold-500), var(--gold-600));
+      border: none;
+      border-radius: var(--r-md);
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #070a13;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+
+    .submit-btn:active {
+      transform: translateY(1px);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .auth-footer {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-500);
+    }
+
+    .auth-link {
+      color: var(--gold-500);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .auth-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Spinner loader */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(7, 10, 19, 0.2);
+      border-top-color: #070a13;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Toast notification systems */
+    .toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      animation: slideIn 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toast.success { background: #064e3b; color: #6ee7b7; border: 1px solid #065f46; }
+    .toast.error { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
+    .toast.warning { background: #78350f; color: #fde68a; border: 1px solid #92400e; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Session Guard checking logic -->
+  <script src="js/auth.js"></script>
+
+  <div class="auth-container">
+    <div class="logo-header">
+      <div class="logo">DocIntel AI <div class="logo-dot"></div></div>
+      <h1 class="title">Welcome Back</h1>
+      <p class="subtitle">Log in to manage and extract document data</p>
+    </div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input class="form-input" type="email" id="email" required autocomplete="email" placeholder="you@company.com">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input class="form-input" type="password" id="password" required autocomplete="current-password" placeholder="••••••••">
+      </div>
+
+      <button class="submit-btn" type="submit" id="submitBtn">
+        <span>Log In</span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Don't have an account? <a class="auth-link" href="register.html">Sign Up</a>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    // Toast notification helper
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = 'toast ' + type;
+      t.innerHTML = (type === 'error' ? '❌ ' : type === 'warning' ? '⚠️ ' : '✓ ') + msg;
+      container.appendChild(t);
+      setTimeout(() => { t.remove(); }, 4000);
+    }
+
+    // Check if session expired
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('expired') === 'true') {
+      showToast('Session expired or logged out. Please log in again.', 'warning');
+    }
+
+    // Handle form submit
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const submitBtn = document.getElementById('submitBtn');
+      
+      // UI Loading state
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<div class="spinner"></div> <span>Logging in...</span>';
+
+      try {
+        await DocAPI.login(email, password);
+        showToast('Login successful! Redirecting...', 'success');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1000);
+      } catch (err) {
+        showToast(err.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Log In</span>';
+      }
+    });
+  </script>
+</body>
+</html>

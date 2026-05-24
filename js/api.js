@@ -1,116 +1,153 @@
 /**
- * js/api.js — Backend communication layer.
- *
- * KEY FEATURE: Render wakeup ping.
- * The moment this script loads (on every page), it silently calls /health
- * on the Render backend. This wakes the container BEFORE the user clicks
- * anything. By the time they reach /demo and upload a PDF, the backend
- * is already warm. First-request latency: ~1s instead of ~45s.
- *
- * Change RENDER_URL to your actual Render service URL.
+ * js/api.js — JWT-wired API Client for DocIntel AI
  */
 
-const RENDER_URL = 'https://doc-intelligence-api-tubh.onrender.com';
-const API_BASE   = `${RENDER_URL}/api/v1`;
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8000/api/v1'
+  : 'https://ai-document-intelligence.onrender.com/api/v1'; // Replace with actual backend Render URL
 
-let _backendReady = false;
-let _wakeupPromise = null;
+const AUTH_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8000/auth'
+  : 'https://ai-document-intelligence.onrender.com/auth';
 
-/**
- * Wake up the Render backend silently.
- * Called automatically on every page load.
- * Resolves when backend responds 200, or after 60s timeout.
- */
-async function wakeupBackend() {
-  if (_backendReady) return true;
-  if (_wakeupPromise) return _wakeupPromise;
-
-  _wakeupPromise = (async () => {
-    const startMs = Date.now();
-    for (let attempt = 0; attempt < 12; attempt++) {
-      try {
-        const r = await fetch(`${RENDER_URL}/health`, {
-          signal: AbortSignal.timeout(8000),
-          cache: 'no-store',
-        });
-        if (r.ok) {
-          _backendReady = true;
-          const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
-          console.log(`[DocIntel] Backend ready in ${elapsed}s`);
-          document.querySelectorAll('.js-api-status').forEach(el => {
-            el.textContent = 'API Online';
-            el.style.color = 'var(--green-500)';
-          });
-          document.querySelectorAll('.js-status-dot').forEach(el => {
-            el.classList.add('pulsing');
-            el.style.background = 'var(--green-500)';
-          });
-          return true;
-        }
-      } catch (_) { /* still waking up */ }
-      await new Promise(r => setTimeout(r, 5000));
-    }
-    console.warn('[DocIntel] Backend did not respond in time.');
-    return false;
-  })();
-
-  return _wakeupPromise;
-}
-
-/** Upload a PDF and return the document_id. */
-async function uploadDocument(file, docType = 'invoice') {
-  const fd = new FormData();
-  fd.append('file', file);
-  fd.append('document_type', docType);
-  const r = await fetch(`${API_BASE}/documents/upload`, { method: 'POST', body: fd });
-  if (!r.ok) throw new Error(`Upload failed: ${r.status}`);
-  return r.json();
-}
-
-/** Poll document status until completed or failed. */
-async function pollDocument(docId, onProgress) {
-  for (let i = 0; i < 60; i++) {
-    await new Promise(r => setTimeout(r, 2500));
-    try {
-      const r = await fetch(`${API_BASE}/documents/${docId}`);
-      if (!r.ok) continue;
-      const data = await r.json();
-      if (onProgress) onProgress(data);
-      if (data.status === 'completed' || data.status === 'failed') return data;
-    } catch (_) {}
+// Helper for JWT-authenticated fetch
+async function authFetch(url, options = {}) {
+  const token = localStorage.getItem('token');
+  options.headers = options.headers || {};
+  if (token) {
+    options.headers['Authorization'] = 'Bearer ' + token;
   }
-  throw new Error('Extraction timed out after 150 seconds.');
+  
+  try {
+    const res = await fetch(url, options);
+    if (res.status === 401) {
+      // Clear expired credentials and redirect
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      const isAuthPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('register.html');
+      if (!isAuthPage) {
+        window.location.href = 'login.html?expired=true';
+      }
+    }
+    return res;
+  } catch (err) {
+    console.error('API connection error:', err);
+    throw err;
+  }
 }
 
-/** Fetch dashboard stats. */
-async function fetchStats() {
-  const r = await fetch(`${API_BASE}/documents/stats/summary`);
-  if (!r.ok) throw new Error('Stats fetch failed');
-  return r.json();
-}
+const DocAPI = {
+  async register(email, password, fullName) {
+    const res = await fetch(`${AUTH_BASE}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, full_name: fullName })
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.detail || 'Registration failed');
+    }
+    return res.json();
+  },
 
-/** Fetch recent documents list. */
-async function fetchDocuments(limit = 10, status = null) {
-  let url = `${API_BASE}/documents/?limit=${limit}`;
-  if (status) url += `&status=${status}`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error('Documents fetch failed');
-  return r.json();
-}
+  async login(email, password) {
+    const res = await fetch(`${AUTH_BASE}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.detail || 'Login failed');
+    }
+    const data = await res.json();
+    localStorage.setItem('token', data.access_token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    return data;
+  },
 
-/** Delete a document by ID. */
-async function deleteDocument(docId) {
-  const r = await fetch(`${API_BASE}/documents/${docId}`, { method: 'DELETE' });
-  return r.status === 204;
-}
+  async getProfile() {
+    const res = await authFetch(`${AUTH_BASE}/me`);
+    if (!res.ok) throw new Error('Failed to fetch user profile');
+    const data = await res.json();
+    localStorage.setItem('user', JSON.stringify(data));
+    return data;
+  },
 
-// Auto-wakeup on every page load
-wakeupBackend();
+  async uploadDocument(file, documentType) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const res = await authFetch(`${API_BASE}/documents/upload?document_type=${documentType}`, {
+      method: 'POST',
+      body: formData
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.detail || 'Upload failed');
+    }
+    return res.json();
+  },
 
-// Expose globally
-window.DocAPI = {
-  wakeupBackend, uploadDocument, pollDocument,
-  fetchStats, fetchDocuments, deleteDocument,
-  isReady: () => _backendReady,
-  baseUrl: RENDER_URL,
+  async pollDocument(docId, onInterim) {
+    return new Promise((resolve, reject) => {
+      let attempts = 0;
+      const interval = setInterval(async () => {
+        attempts++;
+        if (attempts > 35) {
+          clearInterval(interval);
+          reject(new Error('Document processing timed out'));
+          return;
+        }
+        
+        try {
+          const res = await authFetch(`${API_BASE}/documents/${docId}/status`);
+          if (!res.ok) throw new Error('Failed to get processing status');
+          const data = await res.json();
+          
+          if (onInterim) {
+            onInterim(data);
+          }
+          
+          if (data.status === 'completed' || data.status === 'failed') {
+            clearInterval(interval);
+            const fullDocRes = await authFetch(`${API_BASE}/documents/${docId}`);
+            if (!fullDocRes.ok) throw new Error('Failed to fetch document fields');
+            resolve(fullDocRes.json());
+          }
+        } catch (err) {
+          clearInterval(interval);
+          reject(err);
+        }
+      }, 2000);
+    });
+  },
+
+  async listDocuments() {
+    const res = await authFetch(`${API_BASE}/documents/`);
+    if (!res.ok) throw new Error('Failed to retrieve documents');
+    return res.json();
+  },
+
+  async deleteDocument(id) {
+    const res = await authFetch(`${API_BASE}/documents/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Failed to delete document');
+    return true;
+  },
+
+  async reprocessDocument(id) {
+    const res = await authFetch(`${API_BASE}/documents/${id}/reprocess`, {
+      method: 'POST'
+    });
+    if (!res.ok) throw new Error('Failed to reprocess document');
+    return res.json();
+  },
+
+  async getStats() {
+    const res = await authFetch(`${API_BASE}/documents/stats/summary`);
+    if (!res.ok) throw new Error('Failed to fetch stats');
+    return res.json();
+  }
 };
