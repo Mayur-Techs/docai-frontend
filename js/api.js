@@ -10,6 +10,9 @@ const AUTH_BASE = window.location.hostname === 'localhost' || window.location.ho
   ? 'http://localhost:8000/auth'
   : 'https://ai-document-intelligence.onrender.com/auth';
 
+let _backendReady = false;
+let _wakeupPromise = null;
+
 // Helper for JWT-authenticated fetch
 async function authFetch(url, options = {}) {
   const token = localStorage.getItem('token');
@@ -34,6 +37,49 @@ async function authFetch(url, options = {}) {
     console.error('API connection error:', err);
     throw err;
   }
+}
+
+/**
+ * Wake up the Render backend silently.
+ * Called automatically on every page load.
+ * Resolves when backend responds 200, or after 60s timeout.
+ */
+async function wakeupBackend() {
+  if (_backendReady) return true;
+  if (_wakeupPromise) return _wakeupPromise;
+
+  _wakeupPromise = (async () => {
+    const startMs = Date.now();
+    const rootUrl = API_BASE.replace('/api/v1', '');
+    
+    for (let attempt = 0; attempt < 12; attempt++) {
+      try {
+        const r = await fetch(`${rootUrl}/health`, {
+          signal: AbortSignal.timeout(8000),
+          cache: 'no-store',
+        });
+        if (r.ok) {
+          _backendReady = true;
+          const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
+          console.log(`[DocIntel] Backend ready in ${elapsed}s`);
+          document.querySelectorAll('.js-api-status').forEach(el => {
+            el.textContent = el.textContent.startsWith('●') ? '● API Live' : 'API Live';
+            el.style.color = 'var(--green-500)';
+          });
+          document.querySelectorAll('.js-status-dot').forEach(el => {
+            el.classList.add('pulsing');
+            el.style.background = 'var(--green-500)';
+          });
+          return true;
+        }
+      } catch (_) { /* still waking up */ }
+      await new Promise(r => setTimeout(r, 5000));
+    }
+    console.warn('[DocIntel] Backend did not respond in time.');
+    return false;
+  })();
+
+  return _wakeupPromise;
 }
 
 const DocAPI = {
@@ -149,5 +195,18 @@ const DocAPI = {
     const res = await authFetch(`${API_BASE}/documents/stats/summary`);
     if (!res.ok) throw new Error('Failed to fetch stats');
     return res.json();
-  }
+  },
+
+  async fetchStats() {
+    const res = await fetch(`${API_BASE}/documents/stats/summary`);
+    if (!res.ok) throw new Error('Failed to fetch stats');
+    return res.json();
+  },
+
+  wakeupBackend,
+  isReady: () => _backendReady,
+  baseUrl: API_BASE.replace('/api/v1', '')
 };
+
+// Start background wakeup
+wakeupBackend();
