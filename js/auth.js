@@ -5,7 +5,7 @@
 (function() {
   const token = localStorage.getItem('token');
   const path = window.location.pathname;
-  const isAuthPage = path.includes('login.html') || path.includes('register.html');
+  const isAuthPage = path.includes('login.html') || path.includes('signup.html');
   const isDemoPage = path.includes('demo.html');
   
   if (!token) {

@@ -1,3 +1,10 @@
 # Netlify redirects
-# Routes all unknown paths to 404 page
-/*    /404.html   404
+# Pretty URLs for main pages
+/login       /login.html      200
+/signup      /signup.html     200
+/dashboard   /dashboard.html  200
+/demo        /demo.html       200
+/pricing     /pricing.html    200
+
+# Fallback for unknown paths
+/*           /404.html        404
