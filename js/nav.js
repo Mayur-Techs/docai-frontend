@@ -73,6 +73,24 @@ function initNav() {
         color: var(--red-500);
         background: rgba(239, 68, 68, 0.02);
       }
+      .nav-signup-btn {
+        padding: 8px 18px;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-300);
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+      }
+      .nav-signup-btn:hover {
+        border-color: rgba(255,255,255,0.25);
+        background: rgba(255,255,255,0.03);
+        color: var(--text-100);
+      }
     `;
     const styleEl = document.createElement('style');
     styleEl.id = styleId;
@@ -101,7 +119,8 @@ function initNav() {
   } else {
     authHTML = `
       <div class="nav-profile-block">
-        <a href="/login.html" class="nav-link" style="border:1px solid var(--border)">Sign In</a>
+        <a href="/login.html" class="nav-link">Sign In</a>
+        <a href="/signup.html" class="nav-signup-btn">Sign Up</a>
         <a href="/demo.html" class="nav-cta">Try Free Demo</a>
       </div>
     `;

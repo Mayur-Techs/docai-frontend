@@ -27,7 +27,7 @@ async function authFetch(url, options = {}) {
       // Clear expired credentials and redirect
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      const isAuthPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('signup.html');
+      const isAuthPage = window.location.pathname.toLowerCase().includes('login') || window.location.pathname.toLowerCase().includes('signup');
       if (!isAuthPage) {
         window.location.href = 'login.html?expired=true';
       }
