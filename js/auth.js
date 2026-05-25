@@ -1,33 +1,24 @@
 /**
- * js/auth.js — Client-side Session Guards for DocIntel AI
+ * js/auth.js — Session Guard for DocIntel AI
+ * ONLY fires on /dashboard. Never redirects demo, index, pricing, login, or signup.
  */
 
-(function() {
+(function () {
   const token = localStorage.getItem('token');
-  const hasToken = token && token !== 'null' && token !== 'undefined' && token.trim() !== '';
-  const path = window.location.pathname.toLowerCase();
-  
-  const isDashboard = path.includes('dashboard');
-  const isAuthPage = path.includes('login') || path.includes('signup');
-  
-  if (!hasToken) {
-    // If not authenticated, redirect to signup.html only if trying to access protected dashboard
-    if (isDashboard) {
-      window.location.href = 'signup.html';
-    }
-  } else {
-    // If authenticated, prevent loading auth screens and bounce to dashboard
-    if (isAuthPage) {
-      window.location.href = 'dashboard.html';
-    }
+  const invalidToken = !token || token === 'null' || token === 'undefined' || token.trim() === '';
+  const isDashboard = window.location.pathname.toLowerCase().includes('dashboard');
+
+  if (isDashboard && invalidToken) {
+    window.location.href = '/signup';
   }
 })();
 
 /**
- * Clean up local storage token/user state and redirect.
+ * logout() — clears session and returns to homepage.
+ * Called from dashboard Sign Out button.
  */
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  window.location.href = 'login.html';
+  window.location.href = '/';
 }
