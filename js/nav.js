@@ -108,7 +108,7 @@ function initNav() {
   }
 
   navLinksHTML += `<a href="/pricing.html" class="nav-link ${isActive('/pricing') ? 'active' : ''}">Pricing</a>`;
-  navLinksHTML += `<a href="${window.DocAPI?.baseUrl || 'https://ai-document-intelligence.onrender.com/api/v1'}/docs" class="nav-link" target="_blank">API Docs ↗</a>`;
+  navLinksHTML += `<a href="${window.DocAPI?.baseUrl || 'https://doc-intelligence-api-tubh.onrender.com'}/docs" class="nav-link" target="_blank">API Docs ↗</a>`;
 
   const navHTML = `
     <nav class="nav">

@@ -774,7 +774,7 @@
           <button class="action-btn delete" onclick="event.stopPropagation(); deleteDoc(${d.id})">🗑 Delete</button>
         `;
         if (d.status === 'completed') {
-          const downloadUrl = `${DocAPI.uploadDocument.toString().includes('localhost') || window.location.hostname === 'localhost' ? 'http://localhost:8000/api/v1' : 'https://ai-document-intelligence.onrender.com/api/v1'}/documents/${d.id}/download`;
+          const downloadUrl = `${DocAPI.uploadDocument.toString().includes('localhost') || window.location.hostname === 'localhost' ? 'http://localhost:8000/api/v1' : 'https://doc-intelligence-api-tubh.onrender.com/api/v1'}/documents/${d.id}/download`;
           actions = `
             <a class="action-btn" style="text-decoration:none;display:inline-block;" href="${downloadUrl}" target="_blank" onclick="event.stopPropagation()">📥 Download</a>
             ${actions}

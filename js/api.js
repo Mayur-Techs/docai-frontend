@@ -4,11 +4,11 @@
 
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:8000/api/v1'
-  : 'https://ai-document-intelligence.onrender.com/api/v1'; // Replace with actual backend Render URL
+  : 'https://doc-intelligence-api-tubh.onrender.com/api/v1'; // Replace with actual backend Render URL
 
 const AUTH_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:8000/auth'
-  : 'https://ai-document-intelligence.onrender.com/auth';
+  : 'https://doc-intelligence-api-tubh.onrender.com/auth';
 
 let _backendReady = false;
 let _wakeupPromise = null;
