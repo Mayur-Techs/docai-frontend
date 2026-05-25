@@ -555,6 +555,41 @@
     .toast.success { background: #064e3b; color: #6ee7b7; border: 1px solid #065f46; }
     .toast.error { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
     @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Feedback row — issue #11 */
+    .feedback-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.875rem 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      margin-top: 1.25rem;
+    }
+    .feedback-label {
+      font-size: 12px;
+      color: var(--text-400);
+      flex: 1;
+    }
+    .feedback-btn {
+      padding: 5px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-300);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .feedback-btn.positive:hover:not(:disabled) { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.4); color: var(--green-500); }
+    .feedback-btn.negative:hover:not(:disabled) { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.35); color: var(--red-500); }
+    .feedback-thanks {
+      font-size: 12px;
+      color: var(--text-400);
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -711,38 +746,53 @@
 
     async function fetchDashboardData() {
       try {
-        // Fetch document lists
-        documents = await DocAPI.listDocuments();
+        // Fetch document lists and stats in parallel
+        const [docs, stats, freshProfile] = await Promise.all([
+          DocAPI.listDocuments(),
+          DocAPI.getStats(),
+          DocAPI.getProfile()          // always fetch fresh to get live usage counts
+        ]);
+        documents = docs;
         renderDocuments();
 
-        // Fetch usage counters
-        const stats = await DocAPI.getStats();
-        
-        // Render stats
-        document.getElementById('statTotal').textContent = stats.total_documents;
-        
-        // Limit calculation
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const isFree = user.plan === 'free' || !user.plan;
-        
-        const filesUsed = isFree ? (user.files_used_today || 0) : (user.files_used_month || 0);
-        const limitFiles = isFree ? 5 : user.plan === 'starter' ? 100 : user.plan === 'business' ? 500 : 99999;
-        
-        document.getElementById('statUsage').textContent = `${filesUsed} / ${limitFiles === 99999 ? '∞' : limitFiles}`;
-        document.getElementById('statWindow').textContent = isFree ? 'Resets Daily' : 'Resets Monthly';
-        
-        const pct = limitFiles === 99999 ? 0 : Math.min(100, Math.round((filesUsed / limitFiles) * 100));
-        document.getElementById('statPercent').textContent = `${pct}%`;
-        document.getElementById('statMeterFill').style.width = `${pct}%`;
+        // --- Stat card: total documents ---
+        document.getElementById('statTotal').textContent = stats.total_documents ?? documents.length;
 
-        // Calculate average confidence
+        // --- Stat card: usage meter (driven by live profile, not stale localStorage) ---
+        const plan = freshProfile.plan || 'free';
+        const isFree = plan === 'free';
+        const filesUsed = isFree
+          ? (freshProfile.files_used_today  || 0)
+          : (freshProfile.files_used_month  || 0);
+        const limitMap = { free: 5, starter: 100, business: 500, enterprise: Infinity };
+        const limitFiles = limitMap[plan] ?? 5;
+
+        document.getElementById('statUsage').textContent =
+          `${filesUsed} / ${isFinite(limitFiles) ? limitFiles : '\u221e'}`;
+        document.getElementById('statWindow').textContent = isFree ? 'Resets Daily' : 'Resets Monthly';
+
+        const pct = isFinite(limitFiles)
+          ? Math.min(100, Math.round((filesUsed / limitFiles) * 100))
+          : 0;
+        document.getElementById('statPercent').textContent = `${pct}%`;
+        const meterFill = document.getElementById('statMeterFill');
+        meterFill.style.width = `${pct}%`;
+        // colour the bar: green < 70%, amber 70-90%, red > 90%
+        meterFill.style.background = pct > 90
+          ? 'var(--red-500)'
+          : pct > 70
+            ? 'var(--gold-500)'
+            : 'var(--green-500)';
+
+        // --- Stat card: avg confidence ---
         const completedDocs = documents.filter(d => d.status === 'completed' && d.ai_confidence);
         if (completedDocs.length > 0) {
-          const sum = completedDocs.reduce((acc, curr) => acc + curr.ai_confidence, 0);
-          const avg = Math.round((sum / completedDocs.length) * 100);
+          const avg = Math.round(
+            completedDocs.reduce((acc, d) => acc + d.ai_confidence, 0) / completedDocs.length * 100
+          );
           document.getElementById('statConfidence').textContent = `${avg}%`;
         } else {
-          document.getElementById('statConfidence').textContent = '—';
+          document.getElementById('statConfidence').textContent = '\u2014';
         }
 
       } catch (err) {
@@ -919,6 +969,13 @@
             <div class="detail-section-title">Raw Fields Response</div>
             <div class="json-code">${JSON.stringify(d.fields || [], null, 2)}</div>
           </div>
+
+          <!-- Feedback row (issue #11) -->
+          <div class="feedback-row" id="feedbackRow-${d.id}">
+            <span class="feedback-label">Was this extraction accurate?</span>
+            <button class="feedback-btn positive" onclick="submitFeedback(${d.id}, 'positive')" title="Yes, accurate">👍 Yes</button>
+            <button class="feedback-btn negative" onclick="submitFeedback(${d.id}, 'negative')" title="No, incorrect">👎 No</button>
+          </div>
         </div>
       `;
     }
@@ -930,6 +987,22 @@
           <div class="field-val ${!val ? 'empty-val' : ''}">${val || 'not found'}</div>
         </div>
       `;
+    }
+
+    // Issue #11: Feedback submission
+    async function submitFeedback(docId, rating) {
+      const row = document.getElementById(`feedbackRow-${docId}`);
+      if (!row) return;
+      // Optimistically disable buttons to prevent double-submit
+      row.querySelectorAll('.feedback-btn').forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
+      try {
+        await DocAPI.submitFeedback(docId, rating);
+        row.innerHTML = `<span class="feedback-thanks">${rating === 'positive' ? '\u{1F44D} Thanks for the feedback!' : '\u{1F44E} Sorry to hear that. We\'ll improve.'}</span>`;
+      } catch (err) {
+        // Re-enable if it fails
+        row.querySelectorAll('.feedback-btn').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+        showToast('Could not submit feedback: ' + err.message, 'error');
+      }
     }
   </script>
 </body>

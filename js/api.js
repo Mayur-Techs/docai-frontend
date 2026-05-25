@@ -192,14 +192,30 @@ const DocAPI = {
   },
 
   async getStats() {
-    const res = await authFetch(`${API_BASE}/documents/stats/summary`);
+    // GET /api/v1/stats — the only stats endpoint that exists on the backend
+    const res = await authFetch(`${API_BASE}/stats`);
     if (!res.ok) throw new Error('Failed to fetch stats');
     return res.json();
   },
 
   async fetchStats() {
-    const res = await fetch(`${API_BASE}/documents/stats/summary`);
+    // Public stats (no auth header) — same corrected endpoint
+    const res = await fetch(`${API_BASE}/stats`);
     if (!res.ok) throw new Error('Failed to fetch stats');
+    return res.json();
+  },
+
+  async submitFeedback(documentId, rating, comment = '') {
+    // POST /api/v1/documents/{id}/feedback  — rating: 'positive' | 'negative'
+    const res = await authFetch(`${API_BASE}/documents/${documentId}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rating, comment })
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.detail || 'Failed to submit feedback');
+    }
     return res.json();
   },
 
