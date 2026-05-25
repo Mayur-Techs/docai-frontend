@@ -4,14 +4,15 @@
 
 (function() {
   const token = localStorage.getItem('token');
-  const path = window.location.pathname;
-  const isAuthPage = path.includes('login.html') || path.includes('signup.html');
-  const isDemoPage = path.includes('demo.html');
+  const path = window.location.pathname.toLowerCase();
+  
+  const isDashboard = path.includes('dashboard.html') || path.endsWith('/dashboard');
+  const isAuthPage = path.includes('login.html') || path.includes('signup.html') || path.endsWith('/login') || path.endsWith('/signup');
   
   if (!token) {
-    // If not authenticated, force redirect to login (except for auth pages and public demo.html)
-    if (!isAuthPage && !isDemoPage) {
-      window.location.href = 'login.html';
+    // If not authenticated, redirect to signup.html only if trying to access protected dashboard
+    if (isDashboard) {
+      window.location.href = 'signup.html';
     }
   } else {
     // If authenticated, prevent loading auth screens and bounce to dashboard
