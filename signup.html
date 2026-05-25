@@ -6,30 +6,16 @@
   <title>Create Account — DocIntel AI</title>
   <meta name="description" content="Create your free DocIntel AI account and start extracting data from invoices instantly.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="css/main.css">
   <style>
     body {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      background: var(--navy-900);
-    }
-    body::before {
-      content: "";
-      position: fixed;
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%);
-      top: -150px; right: -150px;
-      pointer-events: none; z-index: 0;
-    }
-    body::after {
-      content: "";
-      position: fixed;
-      width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 70%);
-      bottom: -100px; left: -100px;
-      pointer-events: none; z-index: 0;
+      background: var(--navy-800);
+      font-family: 'Inter', sans-serif;
+      margin: 0;
     }
 
     .auth-wrapper {
@@ -38,18 +24,17 @@
       align-items: center;
       justify-content: center;
       padding: 2rem 1.5rem;
-      position: relative;
-      z-index: 1;
     }
 
     .auth-card {
       width: 100%;
-      max-width: 440px;
-      background: var(--navy-800);
+      max-width: 420px;
+      background: var(--navy-700);
       border: 1px solid var(--border);
-      border-radius: var(--r-lg);
+      border-radius: 8px;
       padding: 2.5rem 2.25rem;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      box-sizing: border-box;
     }
 
     .auth-logo {
@@ -57,21 +42,17 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      margin-bottom: 1.75rem;
+      margin-bottom: 1.5rem;
       text-decoration: none;
-    }
-    .auth-logo-icon {
-      width: 36px; height: 36px;
-      background: linear-gradient(135deg, var(--gold-500), #D97706);
-      border-radius: var(--r-sm);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-    }
-    .auth-logo-name {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 700;
       color: var(--text-100);
-      letter-spacing: -0.3px;
+    }
+    .auth-logo-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--gold-500);
+      border-radius: 50%;
     }
 
     .auth-heading {
@@ -79,137 +60,100 @@
       margin-bottom: 2rem;
     }
     .auth-heading h1 {
-      font-size: 1.5rem;
+      font-size: 24px;
       font-weight: 700;
       color: var(--text-100);
-      letter-spacing: -0.02em;
-      margin-bottom: 0.4rem;
+      margin: 0 0 6px 0;
     }
     .auth-heading p {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-400);
+      margin: 0;
     }
 
-    /* Free plan benefits strip */
-    .plan-strip {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      margin-bottom: 1.75rem;
-      flex-wrap: wrap;
+    .form-group {
+      margin-bottom: 1.25rem;
     }
-    .plan-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 12px;
-      color: var(--text-400);
-    }
-    .plan-item span { color: var(--green-500); font-weight: 600; }
-
-    .form-group { margin-bottom: 1.1rem; }
     .form-label {
       display: block;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.7px;
+      letter-spacing: 0.5px;
       color: var(--text-400);
       margin-bottom: 6px;
     }
     .form-input {
       width: 100%;
-      background: rgba(6,9,18,0.6);
+      background: var(--navy-600);
       border: 1px solid var(--border);
-      border-radius: var(--r-sm);
+      border-radius: 8px;
       padding: 10px 14px;
       font-size: 14px;
-      color: var(--text-100);
-      font-family: var(--font);
+      color: var(--text-200);
+      box-sizing: border-box;
       outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      font-family: inherit;
+      transition: border-color 0.15s;
     }
-    .form-input::placeholder { color: var(--text-600); }
     .form-input:focus {
       border-color: var(--gold-500);
-      box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
     }
     .form-hint {
       font-size: 11px;
-      color: var(--text-600);
-      margin-top: 5px;
+      color: var(--text-500);
+      margin-top: 6px;
     }
 
     .error-box {
       display: none;
-      background: rgba(239,68,68,0.08);
+      color: #ef4444;
+      background: rgba(239,68,68,0.1);
       border: 1px solid rgba(239,68,68,0.3);
-      border-radius: var(--r-sm);
+      border-radius: 8px;
       padding: 10px 14px;
       font-size: 13px;
-      color: #fca5a5;
-      margin-bottom: 1.1rem;
+      margin-bottom: 1.25rem;
       line-height: 1.5;
     }
-    .error-box.show { display: block; }
+    .error-box.show {
+      display: block;
+    }
 
     .submit-btn {
       width: 100%;
-      background: linear-gradient(135deg, var(--gold-500), #D97706);
+      background: var(--gold-500);
+      color: #000;
+      font-weight: 600;
       border: none;
-      border-radius: var(--r-sm);
+      border-radius: 8px;
       padding: 12px;
       font-size: 14px;
-      font-weight: 600;
-      color: #000;
       cursor: pointer;
-      font-family: var(--font);
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 0.5rem;
+      font-family: inherit;
+      transition: opacity 0.15s;
     }
-    .submit-btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(245,158,11,0.35);
+    .submit-btn:hover {
+      opacity: 0.9;
     }
     .submit-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-    .btn-spinner {
-      width: 15px; height: 15px;
-      border: 2px solid rgba(0,0,0,0.2);
-      border-top-color: #000;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .terms-note {
-      font-size: 11px;
-      color: var(--text-600);
-      text-align: center;
-      margin-top: 0.75rem;
-      line-height: 1.5;
     }
 
     .auth-footer {
       text-align: center;
       margin-top: 1.5rem;
       font-size: 13px;
-      color: var(--text-500);
+      color: var(--text-400);
     }
     .auth-footer a {
       color: var(--gold-500);
       text-decoration: none;
-      font-weight: 500;
     }
-    .auth-footer a:hover { text-decoration: underline; }
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
 
     .auth-back {
       text-align: center;
@@ -217,72 +161,52 @@
     }
     .auth-back a {
       font-size: 12px;
-      color: var(--text-600);
+      color: var(--text-500);
       text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      transition: color 0.15s;
     }
-    .auth-back a:hover { color: var(--text-400); }
+    .auth-back a:hover {
+      color: var(--text-300);
+    }
   </style>
 </head>
 <body>
-
-<script src="js/api.js"></script>
-<script src="js/nav.js"></script>
-<script>if (typeof initNav === 'function') initNav();</script>
 
 <div class="auth-wrapper">
   <div class="auth-card">
 
     <a href="/" class="auth-logo">
-      <div class="auth-logo-icon">📄</div>
-      <span class="auth-logo-name">DocIntel AI</span>
+      DocIntel AI <span class="auth-logo-dot"></span>
     </a>
 
     <div class="auth-heading">
-      <h1>Create your account</h1>
-      <p>Start extracting invoice data in seconds</p>
-    </div>
-
-    <div class="plan-strip">
-      <div class="plan-item"><span>✓</span> 5 free uploads/day</div>
-      <div class="plan-item"><span>✓</span> No credit card</div>
-      <div class="plan-item"><span>✓</span> Instant access</div>
+      <h1>Create your free account</h1>
+      <p>20 extractions per day. No credit card.</p>
     </div>
 
     <div class="error-box" id="errorBox"></div>
 
     <form id="signupForm" novalidate>
       <div class="form-group">
-        <label class="form-label" for="fullName">Full name</label>
-        <input class="form-input" type="text" id="fullName" name="full_name"
-               required autocomplete="name" placeholder="Jane Smith">
+        <label class="form-label" for="fullName">Full Name</label>
+        <input class="form-input" type="text" id="fullName" placeholder="Your full name" required autocomplete="name">
       </div>
 
       <div class="form-group">
         <label class="form-label" for="email">Email address</label>
-        <input class="form-input" type="email" id="email" name="email"
-               required autocomplete="email" placeholder="you@company.com">
+        <input class="form-input" type="email" id="email" placeholder="you@company.com" required autocomplete="email">
       </div>
 
       <div class="form-group">
         <label class="form-label" for="password">Password</label>
-        <input class="form-input" type="password" id="password" name="password"
-               required autocomplete="new-password" placeholder="••••••••" minlength="8">
-        <div class="form-hint">Must be at least 8 characters</div>
+        <input class="form-input" type="password" id="password" placeholder="Min. 8 characters" required autocomplete="new-password">
+        <div class="form-hint">At least 8 characters</div>
       </div>
 
-      <button class="submit-btn" type="submit" id="submitBtn">
-        <span id="btnText">Create Account</span>
-      </button>
-
-      <p class="terms-note">By signing up you agree to our Terms of Service.</p>
+      <button class="submit-btn" type="submit" id="submitBtn">Create Account</button>
     </form>
 
     <div class="auth-footer">
-      Already have an account? <a href="/login">Sign in</a>
+      Already have an account? <a href="/login">Sign in →</a>
     </div>
 
     <div class="auth-back">
@@ -292,74 +216,76 @@
   </div>
 </div>
 
+<script src="js/api.js"></script>
+<script src="js/nav.js"></script>
 <script>
+  if (typeof initNav === 'function') initNav();
+
   const signupForm = document.getElementById('signupForm');
-  const submitBtn  = document.getElementById('submitBtn');
-  const btnText    = document.getElementById('btnText');
-  const errorBox   = document.getElementById('errorBox');
+  const submitBtn = document.getElementById('submitBtn');
+  const errorBox  = document.getElementById('errorBox');
 
   function showError(msg) {
     errorBox.textContent = msg;
     errorBox.classList.add('show');
-    errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
+
   function clearError() {
     errorBox.classList.remove('show');
     errorBox.textContent = '';
   }
-  function setLoading(on) {
-    submitBtn.disabled = on;
-    btnText.innerHTML = on
-      ? '<div class="btn-spinner"></div><span>Creating account…</span>'
-      : 'Create Account';
-  }
-
-  // If already logged in, go straight to dashboard
-  (function () {
-    const t = localStorage.getItem('token');
-    if (t && t !== 'null' && t !== 'undefined' && t.trim() !== '') {
-      window.location.href = '/dashboard';
-    }
-  })();
 
   signupForm.addEventListener('submit', async function (e) {
     e.preventDefault();
     clearError();
 
     const fullName = document.getElementById('fullName').value.trim();
-    const email    = document.getElementById('email').value.trim();
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
-    if (!fullName) { showError('Please enter your full name.'); return; }
-    if (!email)    { showError('Please enter your email address.'); return; }
+    if (!email || !password || !fullName) {
+      showError('Please fill in all fields.');
+      return;
+    }
+
     if (password.length < 8) {
       showError('Password must be at least 8 characters.');
       return;
     }
 
-    setLoading(true);
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating account...';
+
     try {
-      const data = await DocAPI.register(email, password, fullName);
-      // register returns the user + token; log them in immediately
-      const token = data.access_token || data.token;
-      if (token) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(data.user || { email, plan: 'free' }));
+      const response = await fetch('https://doc-intelligence-api-tubh.onrender.com/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, full_name: fullName })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('user', JSON.stringify(data));
         window.location.href = '/dashboard';
+      } else if (response.status === 409) {
+        showError('An account with this email already exists. Sign in instead.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Account';
+      } else if (response.status === 422) {
+        showError('Password must be at least 8 characters.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Account';
       } else {
-        // Backend registered but didn't return a token — redirect to login
-        window.location.href = '/login?registered=1';
+        const err = await response.json().catch(() => ({}));
+        showError(err.detail || 'Signup failed. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Account';
       }
     } catch (err) {
-      setLoading(false);
-      const status = err.status;
-      if (status === 409) {
-        showError('An account with this email already exists. Please sign in.');
-      } else if (status === 422) {
-        showError('Password must be at least 8 characters.');
-      } else {
-        showError(err.message || 'Registration failed. Please try again.');
-      }
+      showError('Network error. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Create Account';
     }
   });
 </script>

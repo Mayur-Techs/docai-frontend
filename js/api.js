@@ -8,13 +8,8 @@
  *  - getStats: auth required
  */
 
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:8000/api/v1'
-  : 'https://doc-intelligence-api-tubh.onrender.com/api/v1';
-
-const AUTH_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:8000/auth'
-  : 'https://doc-intelligence-api-tubh.onrender.com/auth';
+const API_BASE = 'https://doc-intelligence-api-tubh.onrender.com/api/v1';
+const AUTH_BASE = 'https://doc-intelligence-api-tubh.onrender.com/auth';
 
 let _backendReady = false;
 let _wakeupPromise = null;
@@ -33,17 +28,7 @@ async function authFetch(url, options = {}) {
     options.headers['Authorization'] = 'Bearer ' + token;
   }
   try {
-    const res = await fetch(url, options);
-    if (res.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      const path = window.location.pathname.toLowerCase();
-      const isAuthPage = path.includes('login') || path.includes('signup');
-      if (!isAuthPage) {
-        window.location.href = '/login';
-      }
-    }
-    return res;
+    return await fetch(url, options);
   } catch (err) {
     console.error('[DocIntel] API error:', err);
     throw err;
@@ -98,7 +83,7 @@ const DocAPI = {
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || 'Registration failed'), { status: res.status, data });
+      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
     }
     return res.json();
   },
@@ -111,10 +96,9 @@ const DocAPI = {
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      throw new Error(data.detail || 'Login failed');
+      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
     }
     const data = await res.json();
-    // Backend returns access_token at top level; user object may be nested or flat
     const token = data.access_token || data.token;
     const user = data.user || { email, plan: 'free' };
     localStorage.setItem('token', token);
@@ -124,7 +108,10 @@ const DocAPI = {
 
   async getProfile() {
     const res = await authFetch(`${AUTH_BASE}/me`);
-    if (!res.ok) throw new Error('Failed to fetch profile');
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+    }
     const data = await res.json();
     localStorage.setItem('user', JSON.stringify(data));
     return data;
@@ -143,11 +130,10 @@ const DocAPI = {
     const res = await fetch(url, {
       method: 'POST',
       body: formData,
-      // Deliberately NO Authorization header — backend accepts anonymous uploads
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || 'Upload failed'), { status: res.status });
+      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
     }
     return res.json();
   },
@@ -164,13 +150,19 @@ const DocAPI = {
         }
         try {
           const res = await fetch(`${API_BASE}/documents/${docId}/status`);
-          if (!res.ok) throw new Error('Status check failed');
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+          }
           const data = await res.json();
           if (onInterim) onInterim(data);
           if (data.status === 'completed' || data.status === 'failed') {
             clearInterval(iv);
             const full = await fetch(`${API_BASE}/documents/${docId}`);
-            if (!full.ok) throw new Error('Failed to fetch result');
+            if (!full.ok) {
+              const innerData = await full.json().catch(() => ({}));
+              throw Object.assign(new Error(innerData.detail || innerData.message || full.statusText), { status: full.status });
+            }
             resolve(full.json());
           }
         } catch (err) {
@@ -183,40 +175,56 @@ const DocAPI = {
 
   async listDocuments() {
     const res = await authFetch(`${API_BASE}/documents/`);
-    if (!res.ok) throw new Error('Failed to list documents');
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+    }
     return res.json();
+  },
+
+  async getDocuments() {
+    return this.listDocuments();
   },
 
   async deleteDocument(id) {
     const res = await authFetch(`${API_BASE}/documents/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Failed to delete document');
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+    }
     return true;
   },
 
   async reprocessDocument(id) {
     const res = await authFetch(`${API_BASE}/documents/${id}/reprocess`, { method: 'POST' });
-    if (!res.ok) throw new Error('Failed to reprocess document');
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+    }
     return res.json();
   },
 
   /* Stats */
   async getStats() {
-    // Authenticated — GET /api/v1/stats
     const res = await authFetch(`${API_BASE}/stats`);
-    if (!res.ok) throw new Error('Failed to fetch stats');
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+    }
     return res.json();
   },
 
   async fetchStats() {
-    // Public — GET /api/v1/stats (no auth)
     const res = await fetch(`${API_BASE}/stats`);
-    if (!res.ok) throw new Error('Failed to fetch stats');
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+    }
     return res.json();
   },
 
   /* Feedback */
   async submitFeedback(documentId, rating) {
-    // rating: 1 for positive, -1 for negative
     const res = await authFetch(`${API_BASE}/documents/${documentId}/feedback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -224,29 +232,62 @@ const DocAPI = {
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      throw new Error(data.detail || 'Feedback submission failed');
+      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
     }
     return res.json().catch(() => ({}));
   },
 
-  /* Exports — fetch as blob then trigger download */
-  async downloadExport(documentId, format) {
-    // format: 'csv' or 'excel'
-    const res = await authFetch(`${API_BASE}/documents/${documentId}/export/${format}`);
+  /* Exports */
+  async downloadCSV(docId) {
+    const token = _getToken();
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = 'Bearer ' + token;
+    }
+    const res = await fetch(`${API_BASE}/documents/${docId}/export/csv`, { headers });
     if (!res.ok) {
-      if (res.status === 401) return; // authFetch already redirected
-      throw new Error(`Export failed (${res.status})`);
+      const data = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
     }
     const blob = await res.blob();
-    const ext = format === 'excel' ? 'xlsx' : 'csv';
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `invoice_${documentId}.${ext}`;
+    a.download = `invoice_${docId}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 5000);
+  },
+
+  async downloadExcel(docId) {
+    const token = _getToken();
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = 'Bearer ' + token;
+    }
+    const res = await fetch(`${API_BASE}/documents/${docId}/export/excel`, { headers });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `invoice_${docId}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  },
+
+  async downloadExport(documentId, format) {
+    if (format === 'csv') {
+      return this.downloadCSV(documentId);
+    } else if (format === 'excel') {
+      return this.downloadExcel(documentId);
+    }
   },
 
   /* Email export */
@@ -256,7 +297,7 @@ const DocAPI = {
     );
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      throw new Error(data.detail || 'Email export failed');
+      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
     }
     return res.json();
   },

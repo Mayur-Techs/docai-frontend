@@ -8,15 +8,22 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="css/main.css">
+  <!-- First thing: run session guard immediately to prevent content flash -->
+  <script>
+    (function () {
+      const token = localStorage.getItem('token');
+      const invalid = !token || token === 'null' || token === 'undefined' || token.trim() === '';
+      if (invalid) {
+        window.location.href = '/signup';
+      }
+    })();
+  </script>
   <style>
-    :root {
-      --sidebar-w: 260px;
-    }
-
     body {
-      background: var(--navy-900);
+      background: var(--navy-800);
       color: var(--text-100);
-      font-family: var(--font, 'Inter', sans-serif);
+      font-family: 'Inter', sans-serif;
+      margin: 0;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -25,11 +32,8 @@
     /* ── Top Nav ───────────────────────────────────────────────── */
     .topnav {
       height: 60px;
-      background: rgba(15,23,42,0.9);
+      background: var(--navy-700);
       border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0; z-index: 100;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -39,29 +43,29 @@
       display: flex; align-items: center; gap: 8px;
       text-decoration: none;
       font-size: 16px; font-weight: 700;
-      color: var(--text-100); letter-spacing: -0.3px;
+      color: var(--text-100);
     }
     .logo-dot {
       width: 8px; height: 8px;
       background: var(--gold-500);
       border-radius: 50%;
-      box-shadow: 0 0 8px var(--gold-500);
     }
     .nav-right {
       display: flex; align-items: center; gap: 1rem;
     }
     .nav-user-email {
-      font-size: 12px; color: var(--text-500);
+      font-size: 12px; color: var(--text-400);
     }
     .plan-badge {
       font-size: 10px; font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.8px;
       padding: 2px 8px; border-radius: 20px;
     }
-    .plan-badge.free    { background: rgba(255,255,255,0.07); color: var(--text-400); }
+    .plan-badge.free { background: rgba(255,255,255,0.07); color: var(--text-400); }
     .plan-badge.starter { background: rgba(245,158,11,0.15); color: var(--gold-500); }
     .plan-badge.business { background: rgba(139,92,246,0.15); color: #a78bfa; }
     .plan-badge.enterprise { background: rgba(16,185,129,0.15); color: var(--green-500); }
+
     .signout-btn {
       background: transparent;
       border: 1px solid var(--border);
@@ -69,10 +73,11 @@
       padding: 5px 12px;
       font-size: 12px; font-weight: 500;
       color: var(--text-400);
-      cursor: pointer; font-family: var(--font);
+      cursor: pointer;
+      font-family: inherit;
       transition: all 0.15s;
     }
-    .signout-btn:hover { border-color: var(--text-500); color: var(--text-200); }
+    .signout-btn:hover { border-color: var(--text-300); color: var(--text-200); }
 
     /* ── Page layout ──────────────────────────────────────────── */
     .page-wrap {
@@ -83,22 +88,24 @@
       padding: 2rem 1.5rem;
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
+      gap: 2rem;
+      box-sizing: border-box;
     }
 
     /* ── Stats row ────────────────────────────────────────────── */
     .stats-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
     }
     .stat-card {
-      background: var(--navy-800);
+      background: var(--navy-700);
       border: 1px solid var(--border);
-      border-radius: var(--r-md);
-      padding: 1.25rem 1.5rem;
+      border-radius: 8px;
+      padding: 1.5rem;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     }
     .stat-card::before {
       content: "";
@@ -112,27 +119,27 @@
       letter-spacing: 0.7px; color: var(--text-500); margin-bottom: 8px;
     }
     .stat-value {
-      font-size: 1.75rem; font-weight: 700; color: var(--text-100);
-      letter-spacing: -0.03em; font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem; font-weight: 700; color: var(--text-100);
+      font-family: 'JetBrains Mono', monospace;
     }
     .stat-sub {
-      font-size: 11px; color: var(--text-600); margin-top: 4px;
+      font-size: 11px; color: var(--text-500); margin-top: 4px;
     }
 
     /* Usage meter */
-    .meter-wrap { margin-top: 10px; }
+    .meter-wrap { margin-top: 12px; }
     .meter-bar {
-      height: 4px; background: rgba(255,255,255,0.06);
-      border-radius: 2px; overflow: hidden; margin-bottom: 5px;
+      height: 6px; background: rgba(255,255,255,0.06);
+      border-radius: 3px; overflow: hidden; margin-bottom: 6px;
     }
     .meter-fill {
-      height: 100%; border-radius: 2px;
+      height: 100%; border-radius: 3px;
       background: var(--green-500);
       transition: width 0.5s ease, background 0.5s;
     }
     .meter-labels {
       display: flex; justify-content: space-between;
-      font-size: 10px; color: var(--text-600);
+      font-size: 11px; color: var(--text-500);
     }
 
     /* ── Section header ───────────────────────────────────────── */
@@ -140,57 +147,52 @@
       display: flex; align-items: center; justify-content: space-between;
     }
     .section-title {
-      font-size: 15px; font-weight: 600; color: var(--text-200);
+      font-size: 16px; font-weight: 600; color: var(--text-200);
       display: flex; align-items: center; gap: 8px;
     }
     .section-dot {
       width: 6px; height: 6px; border-radius: 50%;
-      background: var(--gold-500); box-shadow: 0 0 6px var(--gold-500);
+      background: var(--gold-500);
     }
     .refresh-btn {
       background: transparent; border: 1px solid var(--border);
-      border-radius: 6px; padding: 5px 10px;
-      font-size: 11px; color: var(--text-500);
-      cursor: pointer; font-family: var(--font); transition: all 0.15s;
+      border-radius: 6px; padding: 5px 12px;
+      font-size: 12px; color: var(--text-400);
+      cursor: pointer; transition: all 0.15s;
+      font-family: inherit;
     }
-    .refresh-btn:hover { color: var(--text-200); border-color: var(--text-500); }
+    .refresh-btn:hover { color: var(--text-200); border-color: var(--text-400); }
 
-    /* ── Documents panel ──────────────────────────────────────── */
+    /* ── Documents Panel ──────────────────────────────────────── */
     .panel {
-      background: var(--navy-800);
+      background: var(--navy-700);
       border: 1px solid var(--border);
-      border-radius: var(--r-md);
+      border-radius: 8px;
       overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     }
-    .panel-head {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-
-    /* Table */
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th {
-      text-align: left; padding: 0.65rem 1rem;
-      font-size: 10px; font-weight: 600;
+      text-align: left; padding: 0.85rem 1.25rem;
+      font-size: 11px; font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.7px;
       color: var(--text-500);
       background: rgba(255,255,255,0.02);
       border-bottom: 1px solid var(--border);
     }
     td {
-      padding: 0.8rem 1rem;
+      padding: 0.85rem 1.25rem;
       border-bottom: 1px solid rgba(255,255,255,0.04);
       color: var(--text-300);
       vertical-align: middle;
     }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(255,255,255,0.015); }
+    tr:hover td { background: rgba(255,255,255,0.01); }
 
     .doc-name {
       color: var(--text-200); font-weight: 500;
-      max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
 
     /* Status chips */
@@ -198,100 +200,91 @@
       display: inline-block;
       font-size: 10px; font-weight: 600;
       padding: 2px 8px; border-radius: 20px;
-      text-transform: uppercase; letter-spacing: 0.5px;
+      text-transform: capitalize;
     }
-    .chip.completed  { background: rgba(16,185,129,0.12); color: var(--green-500); }
-    .chip.processing { background: rgba(245,158,11,0.12); color: var(--gold-500); animation: pulse 1.5s ease-in-out infinite; }
-    .chip.queued     { background: rgba(255,255,255,0.06); color: var(--text-500); }
-    .chip.failed     { background: rgba(239,68,68,0.10); color: #fca5a5; }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .chip.queued { background: rgba(100,116,139,0.15); color: var(--text-500); }
+    .chip.processing { background: rgba(245,158,11,0.12); color: var(--gold-500); }
+    .chip.completed { background: rgba(16,185,129,0.1); color: var(--green-500); }
+    .chip.failed { background: rgba(239,68,68,0.1); color: #ef4444; }
 
-    /* Action buttons in table */
-    .action-row { display: flex; gap: 6px; flex-wrap: wrap; }
-    .act-btn {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: transparent; border: 1px solid var(--border);
-      border-radius: 5px; padding: 4px 10px;
-      font-size: 11px; font-weight: 500; color: var(--text-400);
-      cursor: pointer; font-family: var(--font); transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .act-btn:hover { color: var(--text-100); border-color: var(--text-500); }
-    .act-btn.gold { color: var(--gold-500); border-color: rgba(245,158,11,0.3); }
-    .act-btn.gold:hover { background: rgba(245,158,11,0.08); }
-    .act-btn.green { color: var(--green-500); border-color: rgba(16,185,129,0.3); }
-    .act-btn.green:hover { background: rgba(16,185,129,0.06); }
-    .act-btn.danger { color: #fca5a5; border-color: rgba(239,68,68,0.25); }
-    .act-btn.danger:hover { background: rgba(239,68,68,0.06); }
-
-    /* Feedback thumbs */
-    .fb-row { display: flex; align-items: center; gap: 4px; }
-    .fb-btn {
-      background: none; border: 1px solid var(--border);
-      border-radius: 4px; padding: 3px 7px; font-size: 12px;
-      cursor: pointer; transition: all 0.15s; font-family: var(--font);
-      color: var(--text-500);
-    }
-    .fb-btn:hover:not(:disabled) { background: rgba(255,255,255,0.05); color: var(--text-200); }
-    .fb-btn:disabled { opacity: 0.4; cursor: default; }
-    .fb-done { font-size: 11px; color: var(--text-500); font-style: italic; }
-
-    /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 3.5rem 1rem;
-    }
-    .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-    .empty-state h3 { font-size: 15px; color: var(--text-300); margin-bottom: 0.4rem; }
-    .empty-state p  { font-size: 13px; color: var(--text-500); }
-    .empty-state a  { color: var(--gold-500); text-decoration: none; font-weight: 500; }
-
-    /* Loading row */
-    .loading-row { text-align: center; padding: 2.5rem; color: var(--text-500); font-size: 13px; }
-    .spinner {
-      display: inline-block;
-      width: 20px; height: 20px;
-      border: 2px solid rgba(255,255,255,0.1);
-      border-top-color: var(--gold-500);
-      border-radius: 50%;
-      animation: spin 0.75s linear infinite;
-      vertical-align: middle; margin-right: 8px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Toast */
-    .toast-container {
-      position: fixed; bottom: 1.5rem; right: 1.5rem;
-      z-index: 9999; display: flex; flex-direction: column; gap: 8px;
-    }
-    .toast {
-      padding: 10px 16px; border-radius: 8px;
-      font-size: 13px; font-weight: 500;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      animation: toastIn 0.2s ease;
-    }
-    .toast.success { background: #064e3b; color: #6ee7b7; border: 1px solid #065f46; }
-    .toast.error   { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
-    @keyframes toastIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-
-    /* Confidence badge */
+    /* Confidence styles */
     .conf-high { color: var(--green-500); font-weight: 600; }
     .conf-mid  { color: var(--gold-500); font-weight: 600; }
-    .conf-low  { color: #fca5a5; font-weight: 600; }
+    .conf-low  { color: #ef4444; font-weight: 600; }
+
+    /* Actions buttons */
+    .action-row { display: flex; align-items: center; gap: 8px; }
+    .act-btn {
+      background: var(--navy-600);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12px; color: var(--text-300);
+      cursor: pointer; font-family: inherit;
+      transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .act-btn:hover { background: var(--navy-500); color: var(--text-100); border-color: var(--text-500); }
+    .act-btn.gold { border-color: rgba(245,158,11,0.3); color: var(--gold-500); }
+    .act-btn.gold:hover { background: rgba(245,158,11,0.1); border-color: var(--gold-500); }
+    .act-btn.danger:hover { background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.5); }
+
+    /* Feedback Row */
+    .fb-row { display: flex; align-items: center; gap: 4px; }
+    .fb-btn {
+      background: transparent; border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px 8px; font-size: 12px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .fb-btn:hover:not(:disabled) { background: rgba(255,255,255,0.05); border-color: var(--text-400); }
+    .fb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Toast system */
+    .toast-container {
+      position: fixed; top: 1.5rem; right: 1.5rem;
+      display: flex; flex-direction: column; gap: 0.5rem; z-index: 1000;
+    }
+    .toast {
+      background: var(--navy-700); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 20px; font-size: 13px;
+      color: var(--text-100); box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      animation: slideIn 0.25s ease-out forwards;
+      min-width: 250px;
+    }
+    .toast.error { border-color: rgba(239,68,68,0.4); color: #fca5a5; background: rgba(239,68,68,0.05); }
+    .toast.success { border-color: rgba(16,185,129,0.4); color: var(--green-500); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    .empty-state {
+      text-align: center; padding: 4rem 2rem;
+    }
+    .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+    .empty-state h3 { font-size: 16px; margin: 0 0 8px 0; color: var(--text-300); }
+    .empty-state p { font-size: 13px; color: var(--text-500); margin: 0; }
+    .empty-state a { color: var(--gold-500); text-decoration: none; font-weight: 500; }
+    .empty-state a:hover { text-decoration: underline; }
+
+    .loading-row {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 3rem 0; color: var(--text-400); font-size: 14px;
+    }
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.1);
+      border-top-color: var(--gold-500); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-<!-- Session guard: redirect immediately if no valid token -->
-<script src="js/auth.js"></script>
-<script src="js/api.js"></script>
-<script src="js/nav.js"></script>
-
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- ── Top nav ──────────────────────────────────────────────────── -->
+<!-- ── Top Nav ──────────────────────────────────────────────────── -->
 <nav class="topnav">
-  <a class="nav-logo" href="/">DocIntel AI <span class="logo-dot"></span></a>
+  <a class="nav-logo" href="/">
+    DocIntel AI <span class="logo-dot"></span>
+  </a>
   <div class="nav-right">
     <span class="nav-user-email" id="navEmail">Loading…</span>
     <span class="plan-badge free" id="navPlan">Free</span>
@@ -299,24 +292,32 @@
   </div>
 </nav>
 
-<!-- ── Page ─────────────────────────────────────────────────────── -->
+<!-- ── Page Wrap ────────────────────────────────────────────────── -->
 <div class="page-wrap">
 
-  <!-- Stats -->
+  <!-- Section 1: Stats Bar -->
   <div class="stats-row">
-
+    <!-- Documents Processed -->
     <div class="stat-card">
-      <div class="stat-title">Total Documents</div>
+      <div class="stat-title">Documents Processed</div>
       <div class="stat-value" id="statTotal">—</div>
-      <div class="stat-sub">All time</div>
+      <div class="stat-sub">Global platform total</div>
     </div>
 
+    <!-- Avg Accuracy -->
     <div class="stat-card">
-      <div class="stat-title">Usage Quota</div>
+      <div class="stat-title">Avg Accuracy</div>
+      <div class="stat-value" id="statConf">—</div>
+      <div class="stat-sub">Across your completed docs</div>
+    </div>
+
+    <!-- Your Usage -->
+    <div class="stat-card">
+      <div class="stat-title">Your Usage</div>
       <div class="stat-value" id="statUsage">—</div>
       <div class="meter-wrap">
         <div class="meter-bar">
-          <div class="meter-fill" id="meterFill" style="width:0%"></div>
+          <div class="meter-fill" id="meterFill" style="width: 0%;"></div>
         </div>
         <div class="meter-labels">
           <span id="meterWindow">Resets Daily</span>
@@ -324,48 +325,37 @@
         </div>
       </div>
     </div>
-
-    <div class="stat-card">
-      <div class="stat-title">Avg. AI Confidence</div>
-      <div class="stat-value" id="statConf">—</div>
-      <div class="stat-sub">Across completed docs</div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-title">Upload More</div>
-      <div style="margin-top:0.5rem;">
-        <a href="/demo" style="
-          display:inline-flex; align-items:center; gap:6px;
-          background:linear-gradient(135deg,var(--gold-500),#D97706);
-          color:#000; font-weight:600; font-size:13px;
-          padding:8px 16px; border-radius:6px; text-decoration:none;
-          transition:opacity 0.15s;
-        ">📄 Upload Invoice</a>
-      </div>
-      <div class="stat-sub" style="margin-top:8px;">PDF, JPG, PNG accepted</div>
-    </div>
-
   </div>
 
-  <!-- Documents list -->
+  <!-- Section 2: Document List Header -->
   <div class="section-header">
     <div class="section-title">
       <div class="section-dot"></div> My Documents
     </div>
-    <button class="refresh-btn" onclick="loadDashboard()">⟳ Refresh</button>
+    <div style="display: flex; gap: 8px;">
+      <a href="/demo" style="
+        display: inline-flex; align-items: center; gap: 6px;
+        background: linear-gradient(135deg, var(--gold-500), #D97706);
+        color: #000; font-weight: 600; font-size: 12px;
+        padding: 6px 12px; border-radius: 6px; text-decoration: none;
+        transition: opacity 0.15s;
+      " onmouseover="this.style.opacity=0.9" onmouseout="this.style.opacity=1">📄 Upload Invoice</a>
+      <button class="refresh-btn" onclick="loadDashboard()">⟳ Refresh</button>
+    </div>
   </div>
 
+  <!-- Section 2: Document List Panel -->
   <div class="panel">
     <div class="table-wrap">
       <table id="docsTable">
         <thead>
           <tr>
             <th>File Name</th>
-            <th>Date</th>
             <th>Status</th>
             <th>Confidence</th>
-            <th>Invoice #</th>
-            <th>Total</th>
+            <th>Invoice No.</th>
+            <th>Total Amount</th>
+            <th>Date</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -382,12 +372,15 @@
     </div>
   </div>
 
-</div><!-- /page-wrap -->
+</div>
 
+<!-- Scripts -->
+<script src="js/api.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/auth.js"></script>
 <script>
-  /* ────────────────────────────────────────────────────────────── */
-  /*  Helpers                                                        */
-  /* ────────────────────────────────────────────────────────────── */
+  if (typeof initNav === 'function') initNav();
+
   function toast(msg, type = 'success') {
     const c = document.getElementById('toastContainer');
     const el = document.createElement('div');
@@ -410,84 +403,133 @@
     if (pct >= 65) return 'conf-mid';
     return 'conf-low';
   }
+
   function confText(val) {
     return val ? Math.round(val * 100) + '%' : '—';
   }
+
   function fmtDate(iso) {
     if (!iso) return '—';
     return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   }
+
   function fmtMoney(v, currency) {
-    if (!v) return '—';
+    if (v == null) return '—';
     return (currency === 'USD' ? '$' : '₹') + Number(v).toLocaleString('en-IN');
   }
 
   /* ────────────────────────────────────────────────────────────── */
-  /*  Load profile + docs + stats                                   */
+  /*  Parallel Fetches & Load Dashboard Data                        */
   /* ────────────────────────────────────────────────────────────── */
   async function loadDashboard() {
+    const token = localStorage.getItem('token');
+    
+    const profilePromise = fetch('https://doc-intelligence-api-tubh.onrender.com/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    }).then(async res => {
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        throw new Error('Unauthorized');
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || data.message || res.statusText);
+      }
+      return res.json();
+    });
+
+    const docsPromise = fetch('https://doc-intelligence-api-tubh.onrender.com/api/v1/documents/', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    }).then(async res => {
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || data.message || res.statusText);
+      }
+      return res.json();
+    });
+
+    const statsPromise = fetch('https://doc-intelligence-api-tubh.onrender.com/api/v1/stats')
+      .then(async res => {
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.detail || data.message || res.statusText);
+        }
+        return res.json();
+      });
+
     try {
-      const [profile, docs] = await Promise.all([
-        DocAPI.getProfile(),
-        DocAPI.listDocuments(),
-      ]);
+      const [profile, docs, stats] = await Promise.all([profilePromise, docsPromise, statsPromise]);
+      
+      // Update local storage user profile
+      localStorage.setItem('user', JSON.stringify(profile));
+
       renderProfile(profile);
-      renderStats(profile, docs);
+      renderStats(stats, docs);
       renderDocs(docs);
     } catch (err) {
-      toast('Failed to load dashboard: ' + (err.message || err), 'error');
-    }
-
-    // Also load aggregate stats for total doc count
-    try {
-      const s = await DocAPI.getStats();
-      if (s && s.total_documents != null) {
-        document.getElementById('statTotal').textContent = s.total_documents;
+      if (err.message !== 'Unauthorized') {
+        toast('Failed to load dashboard data: ' + err.message, 'error');
       }
-    } catch (_) { /* non-critical */ }
+    }
   }
 
   function renderProfile(p) {
-    document.getElementById('navEmail').textContent  = p.email || '—';
+    document.getElementById('navEmail').textContent = p.email || '—';
     const badge = document.getElementById('navPlan');
-    badge.textContent  = (p.plan || 'free').charAt(0).toUpperCase() + (p.plan || 'free').slice(1);
-    badge.className    = 'plan-badge ' + (p.plan || 'free');
+    badge.textContent = (p.plan || 'free').charAt(0).toUpperCase() + (p.plan || 'free').slice(1);
+    badge.className = 'plan-badge ' + (p.plan || 'free');
 
     // Usage meter
-    const plan    = p.plan || 'free';
-    const isFree  = plan === 'free';
-    const used    = isFree ? (p.files_used_today || 0) : (p.files_used_month || 0);
-    const limits  = { free: 5, starter: 100, business: 500, enterprise: Infinity };
-    const limit   = limits[plan] ?? 5;
-    const pct     = isFinite(limit) ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+    const plan = p.plan || 'free';
+    const isFree = plan === 'free';
+    const used = isFree ? (p.files_used_today || 0) : (p.files_used_month || 0);
+    const limit = isFree ? 20 : (plan === 'starter' ? 100 : (plan === 'business' ? 500 : Infinity));
+    const pct = isFinite(limit) ? Math.min(100, Math.round((used / limit) * 100)) : 0;
 
-    document.getElementById('statUsage').textContent    = `${used} / ${isFinite(limit) ? limit : '∞'}`;
-    document.getElementById('meterWindow').textContent  = isFree ? 'Resets Daily' : 'Resets Monthly';
-    document.getElementById('meterPct').textContent     = pct + '%';
+    document.getElementById('statUsage').textContent = `${used} / ${isFinite(limit) ? limit : '∞'}`;
+    document.getElementById('meterWindow').textContent = isFree ? 'Resets Daily' : 'Resets Monthly';
+    document.getElementById('meterPct').textContent = pct + '%';
 
     const fill = document.getElementById('meterFill');
-    fill.style.width      = pct + '%';
-    fill.style.background = pct > 90 ? 'var(--red-500, #ef4444)'
-                          : pct > 70 ? 'var(--gold-500)'
-                          : 'var(--green-500)';
+    fill.style.width = pct + '%';
+    
+    if (pct < 70) {
+      fill.style.background = 'var(--green-500)';
+    } else if (pct <= 90) {
+      fill.style.background = 'var(--gold-500)';
+    } else {
+      fill.style.background = '#ef4444';
+    }
   }
 
-  function renderStats(profile, docs) {
-    // Total from list (fallback until /stats responds)
-    document.getElementById('statTotal').textContent = docs.length;
-
-    // Avg confidence
-    const done = docs.filter(d => d.status === 'completed' && d.ai_confidence != null);
-    if (done.length > 0) {
-      const avg = Math.round(done.reduce((a, d) => a + d.ai_confidence, 0) / done.length * 100);
-      document.getElementById('statConf').textContent = avg + '%';
+  function renderStats(stats, docs) {
+    // Total documents processed (global aggregate)
+    if (stats && stats.total_documents != null) {
+      document.getElementById('statTotal').textContent = stats.total_documents;
     } else {
-      document.getElementById('statConf').textContent = '—';
+      document.getElementById('statTotal').textContent = '—';
+    }
+
+    // Average Accuracy
+    if (stats && stats.avg_confidence_pct != null) {
+      const avg = stats.avg_confidence_pct;
+      document.getElementById('statConf').textContent = avg <= 1 ? Math.round(avg * 100) + '%' : Math.round(avg) + '%';
+    } else {
+      // Fallback local average accuracy calculation
+      const done = docs.filter(d => d.status === 'completed' && d.ai_confidence != null);
+      if (done.length > 0) {
+        const avg = Math.round(done.reduce((a, d) => a + d.ai_confidence, 0) / done.length * 100);
+        document.getElementById('statConf').textContent = avg + '%';
+      } else {
+        document.getElementById('statConf').textContent = '—';
+      }
     }
   }
 
   /* ────────────────────────────────────────────────────────────── */
-  /*  Docs table                                                     */
+  /*  Docs list & rows rendering                                     */
   /* ────────────────────────────────────────────────────────────── */
   function renderDocs(docs) {
     const tbody = document.getElementById('docsTbody');
@@ -496,8 +538,8 @@
         <tr><td colspan="7">
           <div class="empty-state">
             <div class="empty-icon">📂</div>
-            <h3>No documents yet</h3>
-            <p>Upload your first invoice to get started. <a href="/demo">Upload now →</a></p>
+            <h3>No documents yet. Go to demo to upload.</h3>
+            <p><a href="/demo">Upload now →</a></p>
           </div>
         </td></tr>`;
       return;
@@ -512,7 +554,8 @@
       ? `<span class="${confClass(d.ai_confidence)}">${confText(d.ai_confidence)}</span>`
       : '<span style="color:var(--text-600)">—</span>';
     const invNum = d.invoice_number || '<span style="color:var(--text-600)">—</span>';
-    const total  = fmtMoney(d.total_amount, d.currency);
+    const total = fmtMoney(d.total_amount, d.currency);
+    const dateStr = fmtDate(d.created_at || d.date);
 
     // Actions
     let actions = '';
@@ -520,11 +563,11 @@
       const id = d.id;
       actions = `
         <div class="action-row">
-          <button class="act-btn gold" onclick="dlExport(${id},'csv')">⬇ CSV</button>
-          <button class="act-btn gold" onclick="dlExport(${id},'excel')">⬇ Excel</button>
+          <button class="act-btn gold" title="Download CSV" onclick="dlExport(${id}, 'csv')">📊 CSV</button>
+          <button class="act-btn gold" title="Download Excel" onclick="dlExport(${id}, 'excel')">📗 Excel</button>
           <div class="fb-row" id="fb-${id}">
-            <button class="fb-btn" title="Accurate" onclick="sendFeedback(${id}, 1, this)">👍</button>
-            <button class="fb-btn" title="Inaccurate" onclick="sendFeedback(${id}, -1, this)">👎</button>
+            <button class="fb-btn" title="Thumbs Up" onclick="sendFeedback(${id}, 1, this)">👍</button>
+            <button class="fb-btn" title="Thumbs Down" onclick="sendFeedback(${id}, -1, this)">👎</button>
           </div>
           <button class="act-btn danger" onclick="delDoc(${id})">🗑</button>
         </div>`;
@@ -541,22 +584,42 @@
     return `
       <tr>
         <td><div class="doc-name" title="${d.file_name || ''}">${d.file_name || 'Untitled'}</div></td>
-        <td>${fmtDate(d.created_at)}</td>
         <td>${statusChip}</td>
         <td>${conf}</td>
         <td>${invNum}</td>
         <td>${total}</td>
+        <td>${dateStr}</td>
         <td>${actions}</td>
       </tr>`;
   }
 
   /* ────────────────────────────────────────────────────────────── */
-  /*  Actions                                                        */
+  /*  Actions: Downloads, Feedback, Reprocess, Delete               */
   /* ────────────────────────────────────────────────────────────── */
   async function dlExport(id, fmt) {
     try {
       toast(`Preparing ${fmt.toUpperCase()} download…`);
-      await DocAPI.downloadExport(id, fmt);
+      const token = localStorage.getItem('token');
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+      }
+      const response = await fetch(`https://doc-intelligence-api-tubh.onrender.com/api/v1/documents/${id}/export/${fmt}`, { headers });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || data.message || response.statusText);
+      }
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      const ext = fmt === 'excel' ? 'xlsx' : 'csv';
+      a.download = `invoice_${id}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
+      toast(`${fmt.toUpperCase()} downloaded successfully.`, 'success');
     } catch (err) {
       toast('Export failed: ' + err.message, 'error');
     }
@@ -567,18 +630,38 @@
     if (!row) return;
     row.querySelectorAll('.fb-btn').forEach(b => b.disabled = true);
     try {
-      await DocAPI.submitFeedback(id, rating);
-      row.innerHTML = `<span class="fb-done">${rating === 1 ? '👍 Thanks!' : '👎 Noted'}</span>`;
+      const token = localStorage.getItem('token');
+      const response = await fetch(`https://doc-intelligence-api-tubh.onrender.com/api/v1/documents/${id}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ rating })
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || data.message || response.statusText);
+      }
+      row.innerHTML = `<span class="fb-done" style="color: var(--green-500); font-weight: 500; font-size: 12px;">Thank you!</span>`;
     } catch (err) {
       row.querySelectorAll('.fb-btn').forEach(b => b.disabled = false);
-      toast('Could not save feedback.', 'error');
+      toast('Could not save feedback: ' + err.message, 'error');
     }
   }
 
   async function delDoc(id) {
     if (!confirm('Delete this document? This cannot be undone.')) return;
     try {
-      await DocAPI.deleteDocument(id);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`https://doc-intelligence-api-tubh.onrender.com/api/v1/documents/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || data.message || response.statusText);
+      }
       toast('Document deleted.');
       loadDashboard();
     } catch (err) {
@@ -588,7 +671,15 @@
 
   async function reprocess(id) {
     try {
-      await DocAPI.reprocessDocument(id);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`https://doc-intelligence-api-tubh.onrender.com/api/v1/documents/${id}/reprocess`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || data.message || response.statusText);
+      }
       toast('Reprocessing started. Refresh in a moment.');
       setTimeout(loadDashboard, 3000);
     } catch (err) {
@@ -596,17 +687,8 @@
     }
   }
 
-  /* ────────────────────────────────────────────────────────────── */
-  /*  Boot                                                           */
-  /* ────────────────────────────────────────────────────────────── */
-  document.addEventListener('DOMContentLoaded', function () {
-    // Double-check token (auth.js already guards, but belt-and-suspenders)
-    const token = localStorage.getItem('token');
-    const invalid = !token || token === 'null' || token === 'undefined' || token.trim() === '';
-    if (invalid) { window.location.href = '/signup'; return; }
-
-    loadDashboard();
-  });
+  // Load dashboard data on load
+  document.addEventListener('DOMContentLoaded', loadDashboard);
 </script>
 
 </body>
