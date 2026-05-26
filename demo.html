@@ -286,6 +286,21 @@
 let selectedType = 'invoice';
 let docs = [];
 let selectedDocId = null;
+let isLoggedIn = false;
+
+// Silently check auth state on page load
+(async function() {
+  try {
+    const authRes = await fetch('https://doc-intelligence-api-tubh.onrender.com/auth/me', {
+      credentials: 'include'
+    });
+    isLoggedIn = authRes.ok;
+  } catch (e) {
+    isLoggedIn = false;
+  }
+  // Re-render if there's a selected document to reveal/blur the results
+  renderResults();
+})();
 
 // ── Toast ────────────────────────────────────────────────────────────────────
 function showToast(msg, type) {
@@ -345,7 +360,7 @@ function uploadFile(file) {
   renderQueue();
   renderResults();
 
-  // Try real API first
+  // Try real API first (this helper uses credentials: include)
   (typeof DocAPI !== 'undefined' && DocAPI.uploadDocument
     ? DocAPI.uploadDocument(file, selectedType)
     : Promise.reject('no api')
@@ -397,7 +412,7 @@ function pollUntilDone(doc) {
     });
   }
 
-  // Fallback polling via fetch
+  // Fallback polling via fetch with credentials
   return new Promise(function(resolve) {
     var attempts = 0;
     var timer = setInterval(function() {
@@ -405,7 +420,7 @@ function pollUntilDone(doc) {
       doc.progress = Math.min(90, 25 + attempts * 10);
       renderQueue();
 
-      fetch(API_BASE + '/documents/' + doc.docId)
+      fetch(API_BASE + '/documents/' + doc.docId, { credentials: 'include' })
         .then(function(r) { return r.json(); })
         .then(function(result) {
           if (result.status === 'completed' || result.status === 'failed' || attempts > 20) {
@@ -557,11 +572,6 @@ function renderResults() {
   var isLive = !d._simulated;
   var exportId = doc.docId;
 
-  var isLoggedIn = (function() {
-    var t = localStorage.getItem('token');
-    return !!(t && t !== 'null' && t !== 'undefined' && t.trim() !== '');
-  })();
-
   var bodyStyle = isLoggedIn ? '' : ' style="filter: blur(6px); pointer-events: none; user-select: none;"';
 
   var overlayHtml = '';
@@ -577,9 +587,9 @@ function renderResults() {
       + 'padding: 2rem; max-width: 360px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5);'
       + '">'
       + '<div style="font-size: 1.75rem; margin-bottom: 1rem;">🔒</div>'
-      + '<h4 style="font-size: 16px; font-weight: 600; color: var(--text-100); margin-bottom: 0.5rem; margin-top: 0;">Sign up to view full results</h4>'
+      + '<h4 style="font-size: 16px; font-weight: 600; color: var(--text-100); margin-bottom: 0.5rem; margin-top: 0;">🔒 Extraction complete — sign up to view</h4>'
       + '<p style="font-size: 13px; color: var(--text-400); margin-bottom: 1.5rem; line-height: 1.5;">'
-      + 'Create a free account to view vendor name, invoice number, GSTIN, line items, and totals.'
+      + 'Your data is ready. Create a free account to access it.'
       + '</p>'
       + '<div style="display: flex; flex-direction: column; gap: 0.75rem;">'
       + '<a href="/signup" style="'
@@ -696,13 +706,7 @@ function fieldBox(label, value, extraClass) {
 function downloadFile(url, filename) {
   showToast('Preparing download...', 'success');
   
-  const token = localStorage.getItem('token');
-  const headers = {};
-  if (token) {
-    headers['Authorization'] = 'Bearer ' + token;
-  }
-
-  fetch(url, { headers })
+  fetch(url, { credentials: 'include' })
     .then(function(r) {
       if (r.status === 401) {
         showToast('Please log in to download this document.', 'error');
@@ -749,13 +753,9 @@ function sendEmail(id) {
   if (!to || !to.includes('@')) { showToast('Enter a valid email address', 'error'); return; }
   if (status) status.textContent = 'Sending...';
 
-  const token = localStorage.getItem('token');
-  const headers = {};
-  if (token) {
-    headers['Authorization'] = 'Bearer ' + token;
-  }
-
-  fetch(API_BASE + '/documents/' + id + '/export/email?to=' + encodeURIComponent(to), { headers })
+  fetch(API_BASE + '/documents/' + id + '/export/email?to=' + encodeURIComponent(to), {
+    credentials: 'include'
+  })
     .then(function(r) { 
       if (r.status === 401) {
         showToast('Please log in to export this document.', 'error');
@@ -802,7 +802,7 @@ function copyJson() {
 }
 
 // ── API status check ─────────────────────────────────────────────────────────
-fetch(API_BASE + '/health')
+fetch(API_BASE + '/health', { credentials: 'include' })
   .then(function(r) {
     var dot  = document.querySelector('.js-status-dot');
     var span = document.querySelector('.js-api-status');

@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="css/main.css">
+  <script src="https://accounts.google.com/gsi/client" async></script>
   <style>
     body {
       min-height: 100vh;
@@ -71,6 +72,34 @@
       margin: 0;
     }
 
+    /* Google button centering */
+    .g-btn-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      width: 100%;
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: var(--text-500);
+      font-size: 12px;
+      margin: 1.5rem 0;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+    .auth-divider:not(:empty)::before {
+      margin-right: .5em;
+    }
+    .auth-divider:not(:empty)::after {
+      margin-left: .5em;
+    }
+
     .form-group {
       margin-bottom: 1.25rem;
     }
@@ -118,6 +147,11 @@
     }
     .error-box.show {
       display: block;
+    }
+    .error-box.info {
+      color: var(--gold-500);
+      background: rgba(245,158,11,0.1);
+      border-color: rgba(245,158,11,0.3);
     }
 
     .submit-btn {
@@ -185,6 +219,27 @@
 
     <div class="error-box" id="errorBox"></div>
 
+    <!-- OPTION 1 — Google Sign In -->
+    <div class="g-btn-wrapper">
+      <div id="g_id_onload"
+           data-client_id="PASTE_YOUR_GOOGLE_CLIENT_ID_HERE"
+           data-callback="handleGoogleLogin"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+           data-type="standard"
+           data-size="large"
+           data-theme="filled_black"
+           data-text="signup_with"
+           data-shape="rectangular"
+           data-logo_alignment="left"
+           data-width="372">
+      </div>
+    </div>
+
+    <div class="auth-divider">or sign up with email</div>
+
+    <!-- OPTION 2 — Email/Password Registration Form -->
     <form id="signupForm" novalidate>
       <div class="form-group">
         <label class="form-label" for="fullName">Full Name</label>
@@ -227,14 +282,42 @@
 
   function showError(msg) {
     errorBox.textContent = msg;
-    errorBox.classList.add('show');
+    errorBox.className = 'error-box show';
+  }
+
+  function showLoading(msg) {
+    errorBox.textContent = msg;
+    errorBox.className = 'error-box show info';
   }
 
   function clearError() {
-    errorBox.classList.remove('show');
+    errorBox.className = 'error-box';
     errorBox.textContent = '';
   }
 
+  // Google Signup Callback Handler (same endpoint/handler as login)
+  async function handleGoogleLogin(googleResponse) {
+    clearError();
+    showLoading('Creating account with Google...');
+    try {
+      const res = await fetch('https://doc-intelligence-api-tubh.onrender.com/auth/google', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: googleResponse.credential })
+      });
+      if (res.ok) {
+        window.location.href = '/dashboard';
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showError(err.detail || 'Google signup failed');
+      }
+    } catch (err) {
+      showError('Network error during Google sign-up. Please try again.');
+    }
+  }
+
+  // Email/Password Submit Handler
   signupForm.addEventListener('submit', async function (e) {
     e.preventDefault();
     clearError();
@@ -257,28 +340,24 @@
     submitBtn.textContent = 'Creating account...';
 
     try {
-      const response = await fetch('https://doc-intelligence-api-tubh.onrender.com/auth/register', {
+      const res = await fetch('https://doc-intelligence-api-tubh.onrender.com/auth/register', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, full_name: fullName })
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.access_token);
-        localStorage.setItem('user', JSON.stringify(data));
+      if (res.ok) {
         window.location.href = '/dashboard';
-      } else if (response.status === 409) {
-        showError('An account with this email already exists. Sign in instead.');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Create Account';
-      } else if (response.status === 422) {
-        showError('Password must be at least 8 characters.');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Create Account';
       } else {
-        const err = await response.json().catch(() => ({}));
-        showError(err.detail || 'Signup failed. Please try again.');
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 409) {
+          showError('Account already exists. Please sign in.');
+        } else if (res.status === 422) {
+          showError('Password must be at least 8 characters.');
+        } else {
+          showError(data.detail || 'Signup failed. Please try again.');
+        }
         submitBtn.disabled = false;
         submitBtn.textContent = 'Create Account';
       }

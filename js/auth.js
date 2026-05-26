@@ -1,11 +1,20 @@
-const token = localStorage.getItem('token');
-const invalid = !token ||
-  token === 'null' ||
-  token === 'undefined' ||
-  token.trim() === '';
-const path = window.location.pathname.toLowerCase();
-const isDashboard = path.includes('dashboard');
+(async function() {
+    const path = window.location.pathname.toLowerCase();
+    const isDashboard = path.includes('dashboard');
+    const isAuthPage = path.includes('login') ||
+                       path.includes('signup');
 
-if (isDashboard && invalid) {
-  window.location.href = '/signup';
-}
+    if (!isDashboard) return; // only protect dashboard
+
+    try {
+        const res = await fetch(
+            'https://doc-intelligence-api-tubh.onrender.com/auth/me',
+            { credentials: 'include' }
+        );
+        if (!res.ok) {
+            window.location.href = '/signup';
+        }
+    } catch(e) {
+        window.location.href = '/signup';
+    }
+})();

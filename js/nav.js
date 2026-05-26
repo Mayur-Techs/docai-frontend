@@ -4,21 +4,24 @@
  * Automatically marks the current page link as active.
  */
 
-function initNav() {
+async function initNav() {
   const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
   const isActive = (href) => {
     const hrefPath = href.replace(/\/$/, '') || '/';
     return currentPath === hrefPath || currentPath.endsWith(hrefPath);
   };
 
-  // Check login state
-  const token = localStorage.getItem('token');
-  const userString = localStorage.getItem('user');
+  // Check login state via auth cookie
   let user = null;
-  if (token && userString) {
-    try {
-      user = JSON.parse(userString);
-    } catch (e) {}
+  try {
+    const res = await fetch('https://doc-intelligence-api-tubh.onrender.com/auth/me', {
+      credentials: 'include'
+    });
+    if (res.ok) {
+      user = await res.json();
+    }
+  } catch (e) {
+    user = null;
   }
 
   // Inject CSS styles for the profile elements dynamically
@@ -107,11 +110,15 @@ function initNav() {
 
   if (user) {
     navLinksHTML += `<a href="/dashboard.html" class="nav-link ${isActive('/dashboard') ? 'active' : ''}">Dashboard</a>`;
+    const userEmail = user.email || '';
+    const isRoot = userEmail.toLowerCase() === 'nikumbhmayur4@gmail.com' || user.plan === 'root' || user.plan === 'enterprise';
+    const planText = isRoot ? 'Enterprise/Root' : (user.plan || 'free');
+
     authHTML = `
       <div class="nav-profile-block">
         <div class="profile-info">
-          <div class="profile-name">${user.email}</div>
-          <div class="plan-badge ${user.plan || 'free'}">${user.plan || 'free'} Plan</div>
+          <div class="profile-name">${userEmail}</div>
+          <div class="plan-badge ${isRoot ? 'enterprise' : (user.plan || 'free')}">${planText} Plan</div>
         </div>
         <button class="logout-btn" onclick="logout()">Sign Out</button>
       </div>
@@ -127,7 +134,7 @@ function initNav() {
   }
 
   navLinksHTML += `<a href="/pricing.html" class="nav-link ${isActive('/pricing') ? 'active' : ''}">Pricing</a>`;
-  navLinksHTML += `<a href="${window.DocAPI?.baseUrl || 'https://doc-intelligence-api-tubh.onrender.com'}/docs" class="nav-link" target="_blank">API Docs ↗</a>`;
+  navLinksHTML += `<a href="https://doc-intelligence-api-tubh.onrender.com/docs" class="nav-link" target="_blank">API Docs ↗</a>`;
 
   const navHTML = `
     <nav class="nav">
@@ -160,10 +167,16 @@ function initNav() {
 
 // Global logout helper if not already defined
 if (typeof window.logout !== 'function') {
-  window.logout = function() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = 'login.html';
+  window.logout = async function() {
+    try {
+      await fetch('https://doc-intelligence-api-tubh.onrender.com/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
+    window.location.href = '/login.html';
   };
 }
 

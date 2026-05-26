@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="css/main.css">
+  <script src="https://accounts.google.com/gsi/client" async></script>
   <style>
     body {
       min-height: 100vh;
@@ -71,6 +72,34 @@
       margin: 0;
     }
 
+    /* Google button centering */
+    .g-btn-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      width: 100%;
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: var(--text-500);
+      font-size: 12px;
+      margin: 1.5rem 0;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+    .auth-divider:not(:empty)::before {
+      margin-right: .5em;
+    }
+    .auth-divider:not(:empty)::after {
+      margin-left: .5em;
+    }
+
     .form-group {
       margin-bottom: 1.25rem;
     }
@@ -113,6 +142,11 @@
     }
     .error-box.show {
       display: block;
+    }
+    .error-box.info {
+      color: var(--gold-500);
+      background: rgba(245,158,11,0.1);
+      border-color: rgba(245,158,11,0.3);
     }
 
     .submit-btn {
@@ -180,15 +214,36 @@
 
     <div class="error-box" id="errorBox"></div>
 
+    <!-- OPTION 1 — Google Sign In -->
+    <div class="g-btn-wrapper">
+      <div id="g_id_onload"
+           data-client_id="PASTE_YOUR_GOOGLE_CLIENT_ID_HERE"
+           data-callback="handleGoogleLogin"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+           data-type="standard"
+           data-size="large"
+           data-theme="filled_black"
+           data-text="sign_in_with"
+           data-shape="rectangular"
+           data-logo_alignment="left"
+           data-width="372">
+      </div>
+    </div>
+
+    <div class="auth-divider">or sign in with email</div>
+
+    <!-- OPTION 2 — Email/Password Form -->
     <form id="loginForm" novalidate>
       <div class="form-group">
         <label class="form-label" for="email">Email address</label>
-        <input class="form-input" type="email" id="email" required placeholder="you@company.com">
+        <input class="form-input" type="email" id="email" required placeholder="you@company.com" autocomplete="email">
       </div>
 
       <div class="form-group">
         <label class="form-label" for="password">Password</label>
-        <input class="form-input" type="password" id="password" required placeholder="••••••••">
+        <input class="form-input" type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
       </div>
 
       <button class="submit-btn" type="submit" id="submitBtn">Sign In</button>
@@ -216,14 +271,42 @@
 
   function showError(msg) {
     errorBox.textContent = msg;
-    errorBox.classList.add('show');
+    errorBox.className = 'error-box show';
+  }
+
+  function showLoading(msg) {
+    errorBox.textContent = msg;
+    errorBox.className = 'error-box show info';
   }
 
   function clearError() {
-    errorBox.classList.remove('show');
+    errorBox.className = 'error-box';
     errorBox.textContent = '';
   }
 
+  // Google Login Callback Handler
+  async function handleGoogleLogin(googleResponse) {
+    clearError();
+    showLoading('Signing in with Google...');
+    try {
+      const res = await fetch('https://doc-intelligence-api-tubh.onrender.com/auth/google', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: googleResponse.credential })
+      });
+      if (res.ok) {
+        window.location.href = '/dashboard';
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showError(err.detail || 'Google login failed');
+      }
+    } catch (err) {
+      showError('Network error during Google sign-in. Please try again.');
+    }
+  }
+
+  // Email/Password Submit Handler
   loginForm.addEventListener('submit', async function (e) {
     e.preventDefault();
     clearError();
@@ -240,19 +323,17 @@
     submitBtn.textContent = 'Signing in...';
 
     try {
-      const response = await fetch('https://doc-intelligence-api-tubh.onrender.com/auth/login', {
+      const res = await fetch('https://doc-intelligence-api-tubh.onrender.com/auth/login', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.access_token);
-        localStorage.setItem('user', JSON.stringify(data));
+      if (res.ok) {
         window.location.href = '/dashboard';
       } else {
-        const err = await response.json().catch(() => ({}));
+        const err = await res.json().catch(() => ({}));
         showError(err.detail || 'Login failed. Please try again.');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Sign In';

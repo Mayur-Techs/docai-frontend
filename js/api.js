@@ -2,10 +2,9 @@
  * js/api.js — API Client for DocIntel AI
  *
  * Rules:
- *  - uploadDocument: NO auth header (anonymous uploads allowed)
- *  - All read/write document endpoints: Authorization: Bearer {token}
- *  - fetchStats: no auth (public)
- *  - getStats: auth required
+ *  - Every fetch call must include credentials: 'include' to automatically send cookies.
+ *  - No localStorage for tokens or user details.
+ *  - No Authorization: Bearer headers.
  */
 
 const API_BASE = 'https://doc-intelligence-api-tubh.onrender.com/api/v1';
@@ -14,19 +13,9 @@ const AUTH_BASE = 'https://doc-intelligence-api-tubh.onrender.com/auth';
 let _backendReady = false;
 let _wakeupPromise = null;
 
-/* ── Token helper ──────────────────────────────────────────────────────────── */
-function _getToken() {
-  const t = localStorage.getItem('token');
-  return (t && t !== 'null' && t !== 'undefined' && t.trim() !== '') ? t : null;
-}
-
-/* ── Authenticated fetch (only used for protected endpoints) ───────────────── */
+/* ── Standard Fetch Helper with Credentials ────────────────────────────────── */
 async function authFetch(url, options = {}) {
-  const token = _getToken();
-  options.headers = options.headers || {};
-  if (token) {
-    options.headers['Authorization'] = 'Bearer ' + token;
-  }
+  options.credentials = 'include';
   try {
     return await fetch(url, options);
   } catch (err) {
@@ -46,6 +35,7 @@ async function wakeupBackend() {
     for (let i = 0; i < 12; i++) {
       try {
         const r = await fetch(`${rootUrl}/health`, {
+          credentials: 'include',
           signal: AbortSignal.timeout(8000),
           cache: 'no-store',
         });
@@ -78,12 +68,13 @@ const DocAPI = {
   async register(email, password, fullName) {
     const res = await fetch(`${AUTH_BASE}/register`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, full_name: fullName }),
     });
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Request failed');
     }
     return res.json();
   },
@@ -91,49 +82,39 @@ const DocAPI = {
   async login(email, password) {
     const res = await fetch(`${AUTH_BASE}/login`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Request failed');
     }
-    const data = await res.json();
-    const token = data.access_token || data.token;
-    const user = data.user || { email, plan: 'free' };
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-    return data;
+    return res.json();
   },
 
   async getProfile() {
     const res = await authFetch(`${AUTH_BASE}/me`);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Request failed');
     }
-    const data = await res.json();
-    localStorage.setItem('user', JSON.stringify(data));
-    return data;
+    return res.json();
   },
 
   /* Documents */
-
-  /**
-   * uploadDocument — NO Authorization header.
-   * Anonymous uploads are allowed by the backend for the demo.
-   */
   async uploadDocument(file, documentType) {
     const formData = new FormData();
     formData.append('file', file);
     const url = `${API_BASE}/documents/upload?document_type=${encodeURIComponent(documentType)}`;
     const res = await fetch(url, {
       method: 'POST',
+      credentials: 'include',
       body: formData,
     });
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Request failed');
     }
     return res.json();
   },
@@ -149,19 +130,23 @@ const DocAPI = {
           return;
         }
         try {
-          const res = await fetch(`${API_BASE}/documents/${docId}/status`);
+          const res = await fetch(`${API_BASE}/documents/${docId}/status`, {
+            credentials: 'include'
+          });
           if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || err.message || 'Request failed');
           }
           const data = await res.json();
           if (onInterim) onInterim(data);
           if (data.status === 'completed' || data.status === 'failed') {
             clearInterval(iv);
-            const full = await fetch(`${API_BASE}/documents/${docId}`);
+            const full = await fetch(`${API_BASE}/documents/${docId}`, {
+              credentials: 'include'
+            });
             if (!full.ok) {
-              const innerData = await full.json().catch(() => ({}));
-              throw Object.assign(new Error(innerData.detail || innerData.message || full.statusText), { status: full.status });
+              const err = await full.json().catch(() => ({}));
+              throw new Error(err.detail || err.message || 'Request failed');
             }
             resolve(full.json());
           }
@@ -176,8 +161,8 @@ const DocAPI = {
   async listDocuments() {
     const res = await authFetch(`${API_BASE}/documents/`);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Request failed');
     }
     return res.json();
   },
@@ -189,8 +174,8 @@ const DocAPI = {
   async deleteDocument(id) {
     const res = await authFetch(`${API_BASE}/documents/${id}`, { method: 'DELETE' });
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Request failed');
     }
     return true;
   },
@@ -198,8 +183,8 @@ const DocAPI = {
   async reprocessDocument(id) {
     const res = await authFetch(`${API_BASE}/documents/${id}/reprocess`, { method: 'POST' });
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Request failed');
     }
     return res.json();
   },
@@ -208,17 +193,17 @@ const DocAPI = {
   async getStats() {
     const res = await authFetch(`${API_BASE}/stats`);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Request failed');
     }
     return res.json();
   },
 
   async fetchStats() {
-    const res = await fetch(`${API_BASE}/stats`);
+    const res = await fetch(`${API_BASE}/stats`, { credentials: 'include' });
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Request failed');
     }
     return res.json();
   },
@@ -231,23 +216,20 @@ const DocAPI = {
       body: JSON.stringify({ rating }),
     });
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Request failed');
     }
     return res.json().catch(() => ({}));
   },
 
   /* Exports */
   async downloadCSV(docId) {
-    const token = _getToken();
-    const headers = {};
-    if (token) {
-      headers['Authorization'] = 'Bearer ' + token;
-    }
-    const res = await fetch(`${API_BASE}/documents/${docId}/export/csv`, { headers });
+    const res = await fetch(`${API_BASE}/documents/${docId}/export/csv`, {
+      credentials: 'include'
+    });
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Request failed');
     }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
@@ -261,15 +243,12 @@ const DocAPI = {
   },
 
   async downloadExcel(docId) {
-    const token = _getToken();
-    const headers = {};
-    if (token) {
-      headers['Authorization'] = 'Bearer ' + token;
-    }
-    const res = await fetch(`${API_BASE}/documents/${docId}/export/excel`, { headers });
+    const res = await fetch(`${API_BASE}/documents/${docId}/export/excel`, {
+      credentials: 'include'
+    });
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Request failed');
     }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
@@ -296,8 +275,8 @@ const DocAPI = {
       `${API_BASE}/documents/${documentId}/export/email?to=${encodeURIComponent(toEmail)}`
     );
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.detail || data.message || res.statusText), { status: res.status });
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Request failed');
     }
     return res.json();
   },
@@ -306,7 +285,6 @@ const DocAPI = {
   wakeupBackend,
   isReady: () => _backendReady,
   baseUrl: API_BASE.replace('/api/v1', ''),
-  getToken: _getToken,
 };
 
 // Kick off wakeup silently on every page load
