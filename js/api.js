@@ -107,16 +107,25 @@ const DocAPI = {
     const formData = new FormData();
     formData.append('file', file);
     const url = `${API_BASE}/documents/upload?document_type=${encodeURIComponent(documentType)}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      credentials: 'include',
-      body: formData,
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || err.message || 'Request failed');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || err.message || 'Request failed');
+      }
+      return await res.json();
+    } catch (err) {
+      clearTimeout(timeout);
+      throw err;
     }
-    return res.json();
   },
 
   async pollDocument(docId, onInterim) {

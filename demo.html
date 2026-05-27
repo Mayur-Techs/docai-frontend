@@ -200,10 +200,6 @@
       <h1 class="h2">Live Demo</h1>
       <p style="font-size:14px;color:var(--text-500);margin-top:4px;">Upload a real PDF invoice. Watch it get extracted in real time. No account required.</p>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-500);">
-      <div class="status-dot js-status-dot" style="background:var(--text-700);"></div>
-      <span class="js-api-status">Checking API...</span>
-    </div>
   </div>
 
   <div class="demo-layout">
@@ -376,7 +372,14 @@ function uploadFile(file) {
     var msg = (err && err.message) || '';
     var status = (err && err.status) || 0;
 
-    if (status >= 400) {
+    if (err.name === 'AbortError') {
+      // API took too long — show message, don't simulate
+      doc.status = 'failed';
+      doc.error = 'API is waking up. Please wait 30 seconds and try again.';
+      renderQueue();
+      renderResults();
+      showToast(doc.error, 'error');
+    } else if (status >= 400) {
       doc.status = 'failed';
       if (status === 401) {
         doc.error = 'Authentication required. Please sign up or log in to upload documents.';
@@ -389,7 +392,7 @@ function uploadFile(file) {
       renderResults();
       showToast(doc.error, 'error');
     } else {
-      // Genuine network/server failure — fall back to demo simulation
+      // Truly unreachable — simulate as fallback
       simulateExtraction(doc);
     }
   });
@@ -817,6 +820,13 @@ fetch(API_BASE + '/health', { credentials: 'include' })
     var span = document.querySelector('.js-api-status');
     if (span) span.textContent = 'API offline (showing demo)';
   });
+
+setTimeout(function() {
+  const statusEl = document.querySelector('.js-api-status');
+  if (statusEl && (statusEl.textContent === 'Checking API...' || statusEl.textContent === 'Connecting...')) {
+    statusEl.textContent = 'API warming up (30s)...';
+  }
+}, 5000);
 </script>
 </body>
 </html>
