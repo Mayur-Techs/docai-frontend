@@ -805,7 +805,7 @@ function copyJson() {
 }
 
 // ── API status check ─────────────────────────────────────────────────────────
-fetch(API_BASE + '/health', { credentials: 'include' })
+fetch('https://doc-intelligence-api-tubh.onrender.com/health', { credentials: 'include' })
   .then(function(r) {
     var dot  = document.querySelector('.js-status-dot');
     var span = document.querySelector('.js-api-status');
