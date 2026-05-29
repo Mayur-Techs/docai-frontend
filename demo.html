@@ -426,7 +426,7 @@ function pollUntilDone(doc) {
       fetch(API_BASE + '/documents/' + doc.docId, { credentials: 'include' })
         .then(function(r) { return r.json(); })
         .then(function(result) {
-          if (result.status === 'completed' || result.status === 'failed' || attempts > 20) {
+          if (result.status === 'completed' || result.status === 'needs_review' || result.status === 'failed' || attempts > 20) {
             clearInterval(timer);
             doc.status = result.status;
             doc.progress = 100;

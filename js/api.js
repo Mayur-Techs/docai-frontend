@@ -161,16 +161,23 @@ const DocAPI = {
           }
           const data = await res.json();
           if (onInterim) onInterim(data);
-          if (data.status === 'completed' || data.status === 'failed') {
+          if (data.status === 'completed' || data.status === 'needs_review' || data.status === 'failed') {
             clearInterval(iv);
-            const full = await fetch(`${API_BASE}/documents/${docId}`, {
-              credentials: 'include'
-            });
-            if (!full.ok) {
-              const err = await full.json().catch(() => ({}));
-              throw new Error(err.detail || err.message || 'Request failed');
+            try {
+              const full = await fetch(`${API_BASE}/documents/${docId}`, {
+                credentials: 'include'
+              });
+              if (!full.ok) {
+                const errData = await full.json().catch(() => ({}));
+                const e = new Error(errData.detail || errData.message || 'Failed to fetch result');
+                e.status = full.status;
+                reject(e);
+                return;
+              }
+              resolve(await full.json()); // ← was resolve(full.json()) — must await!
+            } catch (fetchErr) {
+              reject(fetchErr);
             }
-            resolve(full.json());
           }
         } catch (err) {
           clearInterval(iv);
