@@ -384,7 +384,7 @@ function uploadFile(file) {
       if (status === 401) {
         doc.error = 'Authentication required. Please sign up or log in to upload documents.';
       } else if (status === 429) {
-        doc.error = 'Daily upload limit reached. Sign up for a higher quota.';
+        doc.error = msg || 'Daily upload limit reached. Sign up for a higher quota.';
       } else {
         doc.error = msg || 'Server error (' + status + ')';
       }

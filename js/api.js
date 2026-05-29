@@ -118,8 +118,21 @@ const DocAPI = {
       });
       clearTimeout(timeout);
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || err.message || 'Request failed');
+        const errData = await res.json().catch(() => ({}));
+        let errMsg = 'Request failed';
+        if (errData.detail) {
+          if (typeof errData.detail === 'object') {
+            errMsg = errData.detail.message || JSON.stringify(errData.detail);
+          } else {
+            errMsg = errData.detail;
+          }
+        } else if (errData.message) {
+          errMsg = errData.message;
+        }
+        const error = new Error(errMsg);
+        error.status = res.status;
+        error.detail = errData.detail;
+        throw error;
       }
       return await res.json();
     } catch (err) {
