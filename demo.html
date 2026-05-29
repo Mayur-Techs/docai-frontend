@@ -575,38 +575,8 @@ function renderResults() {
   var isLive = !d._simulated;
   var exportId = doc.docId;
 
-  var bodyStyle = isLoggedIn ? '' : ' style="filter: blur(6px); pointer-events: none; user-select: none;"';
-
+  var bodyStyle = '';
   var overlayHtml = '';
-  if (!isLoggedIn) {
-    overlayHtml = '<div class="blur-overlay" style="'
-      + 'position: absolute; top: 0; left: 0; right: 0; bottom: 0;'
-      + 'display: flex; align-items: center; justify-content: center;'
-      + 'background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(2px);'
-      + 'z-index: 10; padding: 1.5rem;'
-      + '">'
-      + '<div class="overlay-card" style="'
-      + 'background: var(--navy-700); border: 1px solid var(--border); border-radius: var(--r-md);'
-      + 'padding: 2rem; max-width: 360px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5);'
-      + '">'
-      + '<div style="font-size: 1.75rem; margin-bottom: 1rem;">🔒</div>'
-      + '<h4 style="font-size: 16px; font-weight: 600; color: var(--text-100); margin-bottom: 0.5rem; margin-top: 0;">🔒 Extraction complete — sign up to view</h4>'
-      + '<p style="font-size: 13px; color: var(--text-400); margin-bottom: 1.5rem; line-height: 1.5;">'
-      + 'Your data is ready. Create a free account to access it.'
-      + '</p>'
-      + '<div style="display: flex; flex-direction: column; gap: 0.75rem;">'
-      + '<a href="/signup" style="'
-      + 'background: var(--gold-500); color: #000; font-weight: 600; border-radius: 8px;'
-      + 'padding: 10px; text-decoration: none; font-size: 13px; display: block; text-align: center;'
-      + '">Sign Up Free</a>'
-      + '<a href="/login" style="'
-      + 'background: transparent; border: 1px solid var(--border); color: var(--text-200); font-weight: 500;'
-      + 'border-radius: 8px; padding: 10px; text-decoration: none; font-size: 13px; display: block; text-align: center;'
-      + '">Sign In</a>'
-      + '</div>'
-      + '</div>'
-      + '</div>';
-  }
 
   el.innerHTML = '<div class="result-card" style="position: relative;">'
 
@@ -667,30 +637,28 @@ function renderResults() {
     + '</div>' // closes result-body-container
 
     // Export bar
-    + (isLoggedIn
-      ? '<div class="export-bar">'
-        + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
-        + '<span class="badge badge-green">✓ pdfplumber</span>'
-        + '<span class="badge badge-green">✓ Cerebras AI</span>'
-        + (conf < 95 ? '<span class="badge badge-purple">+ Groq fallback</span>' : '<span class="badge badge-gold">High confidence</span>')
-        + '</div>'
-        + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'
-        + '<button class="export-btn" onclick="copyJson()">📋 Copy JSON</button>'
-        + (isLive
-            ? '<button class="export-btn csv"    onclick="downloadCSV('   + exportId + ')">📊 CSV</button>'
-            + '<button class="export-btn excel"  onclick="downloadExcel(' + exportId + ')">📗 Excel</button>'
-            + '<button class="export-btn email-btn" onclick="toggleEmail()">✉️ Email</button>'
-            : '<span style="font-size:11px;color:var(--text-600);">Upload a real PDF to enable CSV / Excel / Email</span>')
-        + '</div>'
-        + '</div>'
+    + '<div class="export-bar">'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+      + '<span class="badge badge-green">✓ pdfplumber</span>'
+      + '<span class="badge badge-green">✓ Cerebras AI</span>'
+      + (conf < 95 ? '<span class="badge badge-purple">+ Groq fallback</span>' : '<span class="badge badge-gold">High confidence</span>')
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'
+      + '<button class="export-btn" onclick="copyJson()">📋 Copy JSON</button>'
+      + (isLive
+          ? '<button class="export-btn csv"    onclick="downloadCSV('   + exportId + ')">📊 CSV</button>'
+          + '<button class="export-btn excel"  onclick="downloadExcel(' + exportId + ')">📗 Excel</button>'
+          + '<button class="export-btn email-btn" onclick="toggleEmail()">✉️ Email</button>'
+          : '<span style="font-size:11px;color:var(--text-600);">Upload a real PDF to enable CSV / Excel / Email</span>')
+      + '</div>'
+      + '</div>'
 
-        // Email row (hidden until toggled)
-        + '<div class="email-row" id="emailBar">'
-        + '<input type="email" id="emailInput" placeholder="recipient@company.com" />'
-        + '<button class="email-send-btn" onclick="sendEmail(' + exportId + ')">Send Excel</button>'
-        + '<span class="email-status" id="emailStatus"></span>'
-        + '</div>'
-      : '')
+      // Email row (hidden until toggled)
+      + '<div class="email-row" id="emailBar">'
+      + '<input type="email" id="emailInput" placeholder="recipient@company.com" />'
+      + '<button class="email-send-btn" onclick="sendEmail(' + exportId + ')">Send Excel</button>'
+      + '<span class="email-status" id="emailStatus"></span>'
+      + '</div>'
 
     + '</div>';   // closes result-card
 
